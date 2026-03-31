@@ -80,26 +80,22 @@ export function InventoryProvider({ children }) {
     };
   }, []);
 
-  // Controladores de Productos/Stock
-  const updateProduct = async (updatedProduct) => {
+  // Controladores de Productos/Stock (Categorías/Familias)
+  const addProduct = async (newProduct) => {
     try {
-      await setDoc(doc(db, "categories", updatedProduct.id), updatedProduct);
-    } catch (e) { console.error("Error al actualizar unidad física: ", e); }
-  };
-  
-  const addNewModel = async (newModel) => {
-    try {
-      await setDoc(doc(db, "categories", newModel.id), newModel);
+      const id = newProduct.id || (newProduct.brand.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now());
+      await setDoc(doc(db, "categories", id), { ...newProduct, id });
     } catch (e) { console.error("Error guardando nueva marca: ", e); }
   };
-  
-  const updateModel = async (updatedModel) => {
+
+  const updateProduct = async (updatedProduct) => {
     try {
-      await setDoc(doc(db, "categories", updatedModel.id), updatedModel);
-    } catch (e) { console.error("Error actualizando familia: ", e); }
+      if (!updatedProduct.id) return;
+      await setDoc(doc(db, "categories", updatedProduct.id), updatedProduct);
+    } catch (e) { console.error("Error al actualizar marca/stock: ", e); }
   };
 
-  const deleteModel = async (id) => {
+  const deleteProduct = async (id) => {
     try {
       await deleteDoc(doc(db, "categories", id));
     } catch (e) { console.error("Error eliminando categoría: ", e); }
@@ -134,7 +130,7 @@ export function InventoryProvider({ children }) {
 
   return (
     <InventoryContext.Provider value={{ 
-      products, updateProduct, addNewModel, updateModel, deleteModel,
+      products, addProduct, updateProduct, deleteProduct,
       settings, updateSettings, loading,
       offers, addOffer, updateOffer, deleteOffer
     }}>

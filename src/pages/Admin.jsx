@@ -25,12 +25,12 @@ const emptyOffer = {
 
 export default function Admin() {
   const { 
-    products, updateProduct, addNewModel, deleteModel, 
+    products, addProduct, deleteProduct, updateProduct, 
     settings, updateSettings,
     offers, addOffer, updateOffer, deleteOffer
   } = useInventory();
   
-  const [activeTab, setActiveTab] = useState('models');
+  const [activeTab, setActiveTab] = useState('settings');
 
   // --- Stock Tab State ---
   const [selectedProduct, setSelectedProduct] = useState('');
@@ -39,8 +39,8 @@ export default function Admin() {
 
   // --- Settings Tab State ---
   const [localSettings, setLocalSettings] = useState(settings);
-  const [showModelModal, setShowModelModal] = useState(false);
-  const [newModel, setNewModel] = useState({ brand: '', model: '', image: '', description: '', basePrice: '' });
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   // --- Offers Tab State ---
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -50,6 +50,61 @@ export default function Admin() {
   useEffect(() => {
     setLocalSettings(settings);
   }, [settings]);
+
+  const handleFileUpload = (e, field, isSettings = true, callback = null) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 1024 * 1024) {
+      alert("La imagen es muy pesada. Intenta con una menor a 1MB para un mejor rendimiento.");
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result;
+      if (isSettings) {
+        setLocalSettings(prev => ({ ...prev, [field]: base64 }));
+      } else if (callback) {
+        callback(base64);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const ImageInput = ({ label, name, value, onChange, onUpload, placeholder }) => (
+    <div style={{ marginBottom: '15px' }}>
+      <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '6px', fontSize: '0.9rem' }}>{label}</label>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <input 
+          type="url" 
+          name={name} 
+          value={value || ''} 
+          onChange={onChange} 
+          style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'white', boxSizing: 'border-box' }} 
+          placeholder={placeholder || "https://..."} 
+        />
+        <label style={{ 
+          background: 'var(--primary)', 
+          color: 'black', 
+          padding: '10px 15px', 
+          borderRadius: '8px', 
+          cursor: 'pointer', 
+          fontWeight: 700, 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '5px',
+          whiteSpace: 'nowrap'
+        }}>
+          <span className="material-icons" style={{ fontSize: '1.2rem' }}>upload</span>
+          Subir
+          <input type="file" accept="image/*" onChange={onUpload} style={{ display: 'none' }} />
+        </label>
+      </div>
+      {value && (
+        <img src={value} alt="Preview" style={{ marginTop: '10px', width: '100%', maxHeight: '120px', objectFit: 'contain', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)' }} />
+      )}
+    </div>
+  );
 
   // ------  SETTINGS HANDLERS ------
   const handleSaveSettings = (e) => {
@@ -82,20 +137,31 @@ export default function Admin() {
   };
 
   // ------ MODELS HANDLERS ------
-  const handleAddModel = (e) => {
+  const handleCreateProduct = async (e) => {
     e.preventDefault();
-    const modelObj = {
-      id: newModel.brand.toLowerCase() + '-' + Date.now(),
-      brand: newModel.brand,
-      model: newModel.model,
-      image: newModel.image || 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800',
-      description: newModel.description,
-      basePrice: Number(newModel.basePrice),
+    const formData = new FormData(e.target);
+    const newProduct = {
+      brand: formData.get('brand'),
+      model: formData.get('model'),
+      description: formData.get('description'),
+      image: formData.get('image'),
+      basePrice: 0,
       stock: []
     };
-    addNewModel(modelObj);
-    setShowModelModal(false);
-    setNewModel({ brand: '', model: '', image: '', description: '', basePrice: '' });
+    
+    if (editingProduct) {
+      await updateProduct(editingProduct.id, newProduct);
+    } else {
+      await addProduct(newProduct);
+    }
+    
+    setShowProductModal(false);
+    setEditingProduct(null);
+  };
+
+  const handleEditProduct = (p) => {
+    setEditingProduct(p);
+    setShowProductModal(true);
   };
 
   // ------ STOCK HANDLERS ------
@@ -202,11 +268,43 @@ export default function Admin() {
               <div><label style={labelStyle}>Badge del Banner (Ej: Ofertas 2026)</label><input type="text" name="heroBadge" value={localSettings.heroBadge || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
               <div><label style={labelStyle}>Título Principal</label><input type="text" name="heroTitle" value={localSettings.heroTitle || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
               <div><label style={labelStyle}>Palabra Resaltada</label><input type="text" name="heroTitleHighlight" value={localSettings.heroTitleHighlight || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelStyle}>🖼️ Imagen de Fondo del Banner (Hero)</label>
-                <input type="url" name="heroImage" value={localSettings.heroImage || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://..." />
-              </div>
+              <ImageInput 
+                label="🖼️ Imagen de Fondo del Banner (Hero)" 
+                name="heroImage" 
+                value={localSettings.heroImage} 
+                onChange={handleSettingsChange} 
+                onUpload={(e) => handleFileUpload(e, 'heroImage')}
+              />
               <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Descripción del Banner</label><textarea name="heroDescription" value={localSettings.heroDescription || ''} onChange={handleSettingsChange} rows="2" style={inputStyle} /></div>
+            </div>
+          </div>
+
+          {/* Estadísticas */}
+          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
+            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}><span className="material-icons">analytics</span>Estadísticas (Hero)</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div><label style={labelStyle}>Estadística 1 – Valor</label><input type="text" name="stat1Value" value={localSettings.stat1Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Estadística 1 – Etiqueta</label><input type="text" name="stat1Label" value={localSettings.stat1Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Estadística 2 – Valor</label><input type="text" name="stat2Value" value={localSettings.stat2Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Estadística 2 – Etiqueta</label><input type="text" name="stat2Label" value={localSettings.stat2Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <ImageInput 
+                  label="URL Imagen de la Tienda (Sección 'Acerca de')" 
+                  name="aboutImage" 
+                  value={localSettings.aboutImage} 
+                  onChange={handleSettingsChange} 
+                  onUpload={(e) => handleFileUpload(e, 'aboutImage')}
+                />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <ImageInput 
+                  label="🖼️ URL Imagen General – sección '¿Por qué elegirnos?' (opcional)" 
+                  name="whyUsSectionImage" 
+                  value={localSettings.whyUsSectionImage} 
+                  onChange={handleSettingsChange} 
+                  onUpload={(e) => handleFileUpload(e, 'whyUsSectionImage')}
+                />
+              </div>
             </div>
           </div>
 
@@ -225,28 +323,6 @@ export default function Admin() {
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>Descripción en el Footer</label>
                 <textarea name="footerDesc" value={localSettings.footerDesc || ''} onChange={handleSettingsChange} rows="2" style={inputStyle} />
-              </div>
-            </div>
-          </div>
-
-          {/* About Section */}
-          <div>
-            <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.3rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>ℹ️ Sección "Acerca de"</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-              <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Título de la Sección</label><input type="text" name="aboutTitle" value={localSettings.aboutTitle || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Párrafo 1</label><textarea name="aboutP1" value={localSettings.aboutP1 || ''} onChange={handleSettingsChange} rows="3" style={inputStyle} /></div>
-              <div><label style={labelStyle}>Párrafo 2</label><textarea name="aboutP2" value={localSettings.aboutP2 || ''} onChange={handleSettingsChange} rows="3" style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 1 – Valor</label><input type="text" name="stat1Value" value={localSettings.stat1Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 1 – Etiqueta</label><input type="text" name="stat1Label" value={localSettings.stat1Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 2 – Valor</label><input type="text" name="stat2Value" value={localSettings.stat2Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 2 – Etiqueta</label><input type="text" name="stat2Label" value={localSettings.stat2Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>URL Imagen de la Tienda (Sección "Acerca de")</label><input type="url" name="aboutImage" value={localSettings.aboutImage || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelStyle}>🖼️ URL Imagen General – sección "¿Por qué elegirnos?" (opcional, aparece al lado de las razones)</label>
-                <input type="url" name="whyUsSectionImage" value={localSettings.whyUsSectionImage || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://..." />
-                {localSettings.whyUsSectionImage && (
-                  <img src={localSettings.whyUsSectionImage} alt="Preview" style={{ marginTop: '10px', width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--glass-border)' }} onError={e => e.target.style.display='none'} />
-                )}
               </div>
             </div>
           </div>
@@ -288,22 +364,29 @@ export default function Admin() {
         </form>
       )}
 
-      {/* ===== MODELS TAB ===== */}
       {activeTab === 'models' && (
         <div>
-          <button className="btn" onClick={() => setShowModelModal(true)} style={{ marginBottom: '20px' }}>
+          <button className="btn" onClick={() => { setEditingProduct(null); setShowProductModal(true); }} style={{ marginBottom: '20px' }}>
             <span className="material-icons">add</span> Crear Nueva Marca o Categoría
           </button>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-            {products.map(product => (
-              <div key={product.id} className="card" style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-                <img src={product.image} alt={product.model} style={{ width: '100%', height: '150px', objectFit: 'contain', background: '#111', borderRadius: '10px' }} />
-                <h3 style={{ color: 'white', marginTop: '15px', fontSize: '1.2rem' }}>{product.model}</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '15px' }}>{product.description}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Equipos: {product.stock.length}</span>
-                  <button className="action-btn delete-btn" onClick={() => deleteModel(product.id)} title="Eliminar Categoria" style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                    <span className="material-icons">delete</span>
+            {products.map(p => (
+              <div key={p.id} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'row', gap: '20px', alignItems: 'center', background: 'var(--bg-card)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+                <img src={p.image} alt={p.model} style={{ width: '80px', height: '80px', objectFit: 'contain', background: '#111', borderRadius: '12px' }} />
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ margin: 0, color: 'white' }}>{p.model}</h3>
+                  <p style={{ margin: '5px 0', color: 'var(--text-muted)' }}>{p.brand} • {p.stock.length} unidades</p>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    className="action-btn" 
+                    onClick={() => handleEditProduct(p)}
+                    style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--primary)', border: 'none', cursor: 'pointer' }}
+                  >
+                    <span className="material-icons">edit</span>
+                  </button>
+                  <button className="action-btn delete-btn" onClick={() => deleteProduct(p.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <span className="material-icons" style={{ color: '#ef4444' }}>delete</span>
                   </button>
                 </div>
               </div>
@@ -458,23 +541,54 @@ export default function Admin() {
         </div>
       )}
 
-      {/* ===== MODAL: NEW MODEL ===== */}
-      {showModelModal && (
+      {/* ===== MODAL: PRODUCT FAMILY (ADD/EDIT) ===== */}
+      {showProductModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(5px)' }}>
-          <div style={{ background: 'var(--bg-dark)', border: '1px solid var(--glass-border)', borderRadius: '15px', padding: '30px', width: '90%', maxWidth: '500px' }}>
-            <h2 style={{ color: 'white', marginBottom: '20px' }}>Crear Nueva Marca/Categoría</h2>
-            <form onSubmit={handleAddModel}>
+          <div style={{ background: 'var(--bg-dark)', border: '1px solid var(--glass-border)', borderRadius: '15px', padding: '30px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <form onSubmit={handleCreateProduct}>
+              <h2 style={{ color: 'white', marginBottom: '20px' }}>{editingProduct ? 'Editar Familia' : 'Nueva Marca o Categoría'}</h2>
+              
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                <div><label style={labelStyle}>Marca</label><input type="text" required placeholder="Ej: Apple" value={newModel.brand} onChange={e => setNewModel({ ...newModel, brand: e.target.value })} style={inputStyle} /></div>
-                <div><label style={labelStyle}>Nombre en Menú</label><input type="text" required placeholder="Ej: Catálogo iPhone" value={newModel.model} onChange={e => setNewModel({ ...newModel, model: e.target.value })} style={inputStyle} /></div>
+                <div>
+                  <label className="form-label">Marca (Ej: Apple)</label>
+                  <input name="brand" className="form-input" defaultValue={editingProduct?.brand || ''} required style={{ marginBottom: 0 }} />
+                </div>
+                <div>
+                  <label className="form-label">Nombre Catálogo (Ej: iPhone 15)</label>
+                  <input name="model" className="form-input" defaultValue={editingProduct?.model || ''} required style={{ marginBottom: 0 }} />
+                </div>
               </div>
-              <label style={labelStyle}>URL de la Imagen Promocional</label>
-              <input type="url" required placeholder="https://..." value={newModel.image} onChange={e => setNewModel({ ...newModel, image: e.target.value })} style={{ ...inputStyle, marginBottom: '15px' }} />
-              <label style={labelStyle}>Descripción de la Categoría</label>
-              <textarea required rows="2" value={newModel.description} onChange={e => setNewModel({ ...newModel, description: e.target.value })} style={{ ...inputStyle, marginBottom: '20px' }} />
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="submit" className="btn" style={{ flex: 1 }}>Guardar Nueva Categ.</button>
-                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowModelModal(false)}>Cancelar</button>
+              
+              <label className="form-label">Descripción</label>
+              <textarea name="description" className="form-input" defaultValue={editingProduct?.description || ''} rows="2" style={{ marginBottom: '15px' }} />
+              
+              <label className="form-label">Imagen de la Marca</label>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                <input 
+                  id="modalImageInput" 
+                  name="image" 
+                  className="form-input" 
+                  defaultValue={editingProduct?.image || ''} 
+                  style={{ marginBottom: 0, flex: 1 }} 
+                  placeholder="URL de imagen..."
+                />
+                <label style={{ background: 'var(--primary)', color: 'black', padding: '0 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span className="material-icons">upload</span>
+                  Subir
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    onChange={(e) => handleFileUpload(e, 'image', false, (base64) => {
+                      document.getElementById('modalImageInput').value = base64;
+                    })} 
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>
+                <button type="submit" className="btn" style={{ flex: 2 }}>{editingProduct ? 'Guardar Cambios' : 'Crear Registro'}</button>
+                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowProductModal(false); setEditingProduct(null); }}>Cancelar</button>
               </div>
             </form>
           </div>
