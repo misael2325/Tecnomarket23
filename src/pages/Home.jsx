@@ -228,7 +228,7 @@ export default function Home() {
         <section className="section" style={{ paddingTop: 0 }}>
           <div className="section-title">
             <h2>¿Por qué elegirnos?</h2>
-            <p>Las razones por las que miles de clientes confíen en nosotros.</p>
+            <p>Las razones por las que miles de clientes confían en nosotros.</p>
           </div>
 
           {/* General section image (optional) */}
@@ -274,6 +274,51 @@ export default function Home() {
         </section>
       )}
 
+      {/* INSTAGRAM SECTION */}
+      {settings.socialInstagram && settings.instagramPhotos && settings.instagramPhotos.length > 0 && (
+        <section className="section" style={{ background: 'rgba(255,255,255,0.02)', padding: '80px 5%' }}>
+          <div className="section-title">
+            <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#E1306C' }}>camera_alt</span>
+              Síguenos en Instagram
+            </h2>
+            <p>Mira nuestras novedades y promociones exclusivas en redes sociales.</p>
+          </div>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: '15px', 
+            maxWidth: '1000px', 
+            margin: '0 auto 40px' 
+          }}>
+            {settings.instagramPhotos.map((photo, idx) => (
+              <div key={idx} style={{ 
+                aspectRatio: '1/1', 
+                overflow: 'hidden', 
+                borderRadius: '12px', 
+                border: '1px solid var(--glass-border)',
+                background: '#111'
+              }}>
+                <img src={photo} alt={`Instagram ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }} 
+                  onMouseEnter={e => e.target.style.transform = 'scale(1.1)'} 
+                  onMouseLeave={e => e.target.style.transform = 'scale(1)'} 
+                />
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" className="btn" style={{ 
+              background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)', 
+              border: 'none',
+              padding: '12px 30px',
+              fontWeight: 800
+            }}>
+              Ir a Instagram
+            </a>
+          </div>
+        </section>
+      )}
+
       <footer id="contacto">
         <div className="footer-content">
           <div style={{ textAlign: 'left' }}>
@@ -295,11 +340,17 @@ export default function Home() {
               <span className="material-icons" style={{ fontSize: '1.2rem' }}>phone</span>
               {settings.contactPhone}
             </a>
+            {settings.contactEmail && (
+              <a href={`mailto:${settings.contactEmail}`} style={{ color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+                <span className="material-icons" style={{ fontSize: '1.2rem' }}>mail</span>
+                {settings.contactEmail}
+              </a>
+            )}
           </div>
           <div className="social-links">
-            <a href="#"><span className="material-icons">facebook</span></a>
-            <a href="#"><span className="material-icons">camera_alt</span></a>
-            <a href="#"><span className="material-icons">mail</span></a>
+            {settings.socialFacebook && <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer"><span className="material-icons">facebook</span></a>}
+            {settings.socialInstagram && <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer"><span className="material-icons">camera_alt</span></a>}
+            {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}><span className="material-icons">mail</span></a>}
           </div>
         </div>
         <div className="copyright">

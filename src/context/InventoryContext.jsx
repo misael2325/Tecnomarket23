@@ -21,8 +21,17 @@ const defaultSettings = {
   footerDesc: 'Centro de importación y distribución de dispositivos móviles, inteligente y servicio autorizado.',
   contactAddress: 'Santo Domingo, República Dominicana',
   contactPhone: '+1 (809) 555-0123',
+  contactEmail: 'ventas@capitalcelular.com',
+  socialInstagram: 'https://instagram.com/capitalcelular',
+  socialFacebook: 'https://facebook.com/capitalcelular',
   heroImage: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
   whyUsSectionImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
+  instagramPhotos: [
+    'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800',
+    'https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=800',
+    'https://images.unsplash.com/photo-1551817958-d194f74d010d?w=800',
+    'https://images.unsplash.com/photo-1565849906660-496662489e27?w=800',
+  ],
   whyUsItems: [
     { id: '1', icon: '🔒', title: 'Garantía Real', desc: 'Todos nuestros equipos incluyen garantía de 1 año con soporte técnico dedicado.' },
     { id: '2', icon: '✈️', title: 'Importación Directa', desc: 'Traemos equipos originales directamente de fábrica, sin intermediarios.' },

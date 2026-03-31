@@ -136,6 +136,12 @@ export default function Admin() {
     setLocalSettings(prev => ({ ...prev, whyUsItems: updated }));
   };
 
+  const handleInstagramPhotoChange = (index, value) => {
+    const updated = [...(localSettings.instagramPhotos || [])];
+    updated[index] = value;
+    setLocalSettings(prev => ({ ...prev, instagramPhotos: updated }));
+  };
+
   // ------ MODELS HANDLERS ------
   const handleCreateProduct = async (e) => {
     e.preventDefault();
@@ -279,14 +285,14 @@ export default function Admin() {
             </div>
           </div>
 
-          {/* Estadísticas */}
+          {/* Acerca de */}
           <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
-            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}><span className="material-icons">analytics</span>Estadísticas (Hero)</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div><label style={labelStyle}>Estadística 1 – Valor</label><input type="text" name="stat1Value" value={localSettings.stat1Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 1 – Etiqueta</label><input type="text" name="stat1Label" value={localSettings.stat1Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 2 – Valor</label><input type="text" name="stat2Value" value={localSettings.stat2Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 2 – Etiqueta</label><input type="text" name="stat2Label" value={localSettings.stat2Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}><span className="material-icons">info</span>Sección "Acerca de" (Nosotros)</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+              <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Título de la Sección</label><input type="text" name="aboutTitle" value={localSettings.aboutTitle || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Párrafo 1 (Descriptivo)</label><textarea name="aboutP1" value={localSettings.aboutP1 || ''} onChange={handleSettingsChange} rows="3" style={inputStyle} /></div>
+              <div><label style={labelStyle}>Párrafo 2 (Historial/Misión)</label><textarea name="aboutP2" value={localSettings.aboutP2 || ''} onChange={handleSettingsChange} rows="3" style={inputStyle} /></div>
+              
               <div style={{ gridColumn: '1 / -1' }}>
                 <ImageInput 
                   label="URL Imagen de la Tienda (Sección 'Acerca de')" 
@@ -296,9 +302,21 @@ export default function Admin() {
                   onUpload={(e) => handleFileUpload(e, 'aboutImage')}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Estadísticas (opcional, se muestran en Home) */}
+          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
+            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}><span className="material-icons">analytics</span>Estadísticas y Banner Why Us</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div><label style={labelStyle}>Estadística 1 – Valor</label><input type="text" name="stat1Value" value={localSettings.stat1Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Estadística 1 – Etiqueta</label><input type="text" name="stat1Label" value={localSettings.stat1Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Estadística 2 – Valor</label><input type="text" name="stat2Value" value={localSettings.stat2Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Estadística 2 – Etiqueta</label><input type="text" name="stat2Label" value={localSettings.stat2Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              
               <div style={{ gridColumn: '1 / -1' }}>
                 <ImageInput 
-                  label="🖼️ URL Imagen General – sección '¿Por qué elegirnos?' (opcional)" 
+                  label="🖼️ URL Imagen General – sección '¿Por qué elegirnos?' (Banner opcional)" 
                   name="whyUsSectionImage" 
                   value={localSettings.whyUsSectionImage} 
                   onChange={handleSettingsChange} 
@@ -310,20 +328,53 @@ export default function Admin() {
 
           {/* Contact */}
           <div>
-            <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.3rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>📞 Contacto y Dirección</h2>
+            <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.3rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>📞 Contacto y Redes Sociales</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
               <div>
-                <label style={labelStyle}>📱 Número de Teléfono</label>
+                <label style={labelStyle}>📱 Número de Teléfono (WhatsApp)</label>
                 <input type="text" name="contactPhone" value={localSettings.contactPhone || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="+1 (809) 555-0123" />
+              </div>
+              <div>
+                <label style={labelStyle}>📧 Correo Electrónico</label>
+                <input type="email" name="contactEmail" value={localSettings.contactEmail || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="ventas@capitalcelular.com" />
               </div>
               <div>
                 <label style={labelStyle}>📍 Dirección de la Tienda</label>
                 <input type="text" name="contactAddress" value={localSettings.contactAddress || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="Santo Domingo, República Dominicana" />
               </div>
+              <div>
+                <label style={labelStyle}>📸 Enlace de Instagram</label>
+                <input type="url" name="socialInstagram" value={localSettings.socialInstagram || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://instagram.com/..." />
+              </div>
+              <div>
+                <label style={labelStyle}>🔵 Enlace de Facebook</label>
+                <input type="url" name="socialFacebook" value={localSettings.socialFacebook || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://facebook.com/..." />
+              </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>Descripción en el Footer</label>
                 <textarea name="footerDesc" value={localSettings.footerDesc || ''} onChange={handleSettingsChange} rows="2" style={inputStyle} />
               </div>
+            </div>
+          </div>
+
+          {/* Instagram Feed Editor */}
+          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
+            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="material-icons">instagram</span> Publicidad: Fotos de Instagram (Feed Preview)
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>Selecciona hasta 4 fotos recientes para mostrar en la página de inicio como publicidad.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+              {[0, 1, 2, 3].map((idx) => (
+                <div key={idx}>
+                  <ImageInput 
+                    label={`Foto ${idx + 1}`} 
+                    name={`ig-${idx}`} 
+                    value={localSettings.instagramPhotos?.[idx] || ''} 
+                    onChange={(e) => handleInstagramPhotoChange(idx, e.target.value)} 
+                    onUpload={(e) => handleFileUpload(e, `ig-${idx}`, false, (base64) => handleInstagramPhotoChange(idx, base64))}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
