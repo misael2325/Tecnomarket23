@@ -5,6 +5,11 @@ import { useInventory } from '../context/InventoryContext';
 export default function Home() {
   const { products, settings, offers } = useInventory();
 
+  // Build WhatsApp link from settings phone
+  const rawPhone = (settings.contactPhone || '').replace(/\D/g, '');
+  const waLink = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hola, me interesa uno de sus equipos disponibles 📱')}`;
+
+
   // Find currently active offers (active flag + within date range)
   const today = new Date().toISOString().split('T')[0];
   const activeOffers = (offers || []).filter(o =>
@@ -23,12 +28,14 @@ export default function Home() {
         </Link>
         <div className="nav-links">
           <a href="#" className="active">Inicio</a>
-          <a href="#productos">Catálogo</a>
+          <Link to="/catalog">Catálogo</Link>
           <a href="#nosotros">Acerca de</a>
           <Link to="/admin" style={{ color: 'var(--text-muted)' }}>Admin</Link>
         </div>
         <div style={{ display: 'flex', gap: '15px' }}>
-          <a href="#contacto" className="btn btn-outline" style={{ padding: '8px 20px' }}>Contáctanos</a>
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '8px 20px', background: '#25D366', border: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            💬 Contáctanos
+          </a>
         </div>
       </nav>
 
@@ -77,7 +84,11 @@ export default function Home() {
         </div>
       )}
 
-      <header className="hero">
+      <header className="hero" style={{ 
+        backgroundImage: settings.heroImage ? `linear-gradient(to bottom, rgba(10,10,12,0.6) 0%, rgba(10,10,12,1) 100%), url(${settings.heroImage})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}>
         <div className="hero-content">
           <div className="badge">{settings.heroBadge}</div>
           <h1>{settings.heroTitle} <span>{settings.heroTitleHighlight}</span></h1>
@@ -217,8 +228,21 @@ export default function Home() {
         <section className="section" style={{ paddingTop: 0 }}>
           <div className="section-title">
             <h2>¿Por qué elegirnos?</h2>
-            <p>Las razones por las que miles de clientes confían en nosotros.</p>
+            <p>Las razones por las que miles de clientes confíen en nosotros.</p>
           </div>
+
+          {/* General section image (optional) */}
+          {settings.whyUsSectionImage && (
+            <div style={{ maxWidth: '1200px', margin: '0 auto 30px', padding: '0 5%' }}>
+              <img
+                src={settings.whyUsSectionImage}
+                alt="¿Por qué elegirnos?"
+                style={{ width: '100%', maxHeight: '320px', objectFit: 'cover', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}
+                onError={e => e.target.style.display='none'}
+              />
+            </div>
+          )}
+
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
@@ -267,10 +291,10 @@ export default function Home() {
               <span className="material-icons" style={{ fontSize: '1.2rem' }}>location_on</span>
               {settings.contactAddress}
             </p>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <a href={waLink} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
               <span className="material-icons" style={{ fontSize: '1.2rem' }}>phone</span>
               {settings.contactPhone}
-            </p>
+            </a>
           </div>
           <div className="social-links">
             <a href="#"><span className="material-icons">facebook</span></a>

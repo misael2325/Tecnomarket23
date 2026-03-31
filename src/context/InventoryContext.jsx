@@ -21,6 +21,8 @@ const defaultSettings = {
   footerDesc: 'Centro de importación y distribución de dispositivos móviles, inteligente y servicio autorizado.',
   contactAddress: 'Santo Domingo, República Dominicana',
   contactPhone: '+1 (809) 555-0123',
+  heroImage: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
+  whyUsSectionImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
   whyUsItems: [
     { id: '1', icon: '🔒', title: 'Garantía Real', desc: 'Todos nuestros equipos incluyen garantía de 1 año con soporte técnico dedicado.' },
     { id: '2', icon: '✈️', title: 'Importación Directa', desc: 'Traemos equipos originales directamente de fábrica, sin intermediarios.' },

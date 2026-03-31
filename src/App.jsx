@@ -1,21 +1,24 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import ProductDetails from './pages/ProductDetails';
+import Catalog from './pages/Catalog';
 import Admin from './pages/Admin';
-
+import { InventoryProvider } from './context/InventoryContext';
 import './index.css';
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="bg-gradient"></div>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/device/:id" element={<ProductDetails />} />
-        <Route path="/admin" element={<Admin />} />
-      </Routes>
-    </BrowserRouter>
+    <InventoryProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/catalog" element={<Catalog />} />
+          <Route path="/device/:id" element={<ProductDetails />} />
+          <Route path="/admin" element={<Admin />} />
+        </Routes>
+      </Router>
+    </InventoryProvider>
   );
 }
 

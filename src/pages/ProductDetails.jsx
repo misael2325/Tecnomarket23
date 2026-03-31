@@ -8,6 +8,10 @@ export default function ProductDetails() {
   
   const product = products.find(p => p.id === id);
 
+  const rawPhone = (settings.contactPhone || '').replace(/\D/g, '');
+  const waBase = `https://wa.me/${rawPhone}`;
+
+
   if (!product) {
     return (
       <div style={{ padding: '100px 5%', textAlign: 'center' }}>
@@ -26,7 +30,7 @@ export default function ProductDetails() {
         </Link>
         <div className="nav-links">
           <Link to="/">Inicio</Link>
-          <Link to="/#productos" className="active">Catálogo</Link>
+          <Link to="/catalog" className="active">Catálogo</Link>
         </div>
       </nav>
 
@@ -56,10 +60,17 @@ export default function ProductDetails() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                       <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Precio a pagar</span>
+                       <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Precio</span>
                        <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
                     </div>
-                    <button className="btn" style={{ padding: '12px 25px', borderRadius: '10px' }}>Comprar</button>
+                    <a
+                      href={`${waBase}?text=${encodeURIComponent(`Hola, me interesa el ${item.specificModel} (Grado ${item.grade}, Batería ${item.battery}%) en RD$ ${item.price.toLocaleString()} 📱`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ background: '#25D366', color: '#fff', borderRadius: '10px', padding: '12px 20px', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
+                    >
+                      💬 Consultar
+                    </a>
                   </div>
                 </div>
               ))}

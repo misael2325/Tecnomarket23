@@ -202,6 +202,10 @@ export default function Admin() {
               <div><label style={labelStyle}>Badge del Banner (Ej: Ofertas 2026)</label><input type="text" name="heroBadge" value={localSettings.heroBadge || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
               <div><label style={labelStyle}>Título Principal</label><input type="text" name="heroTitle" value={localSettings.heroTitle || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
               <div><label style={labelStyle}>Palabra Resaltada</label><input type="text" name="heroTitleHighlight" value={localSettings.heroTitleHighlight || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>🖼️ Imagen de Fondo del Banner (Hero)</label>
+                <input type="url" name="heroImage" value={localSettings.heroImage || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://..." />
+              </div>
               <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Descripción del Banner</label><textarea name="heroDescription" value={localSettings.heroDescription || ''} onChange={handleSettingsChange} rows="2" style={inputStyle} /></div>
             </div>
           </div>
@@ -236,7 +240,14 @@ export default function Admin() {
               <div><label style={labelStyle}>Estadística 1 – Etiqueta</label><input type="text" name="stat1Label" value={localSettings.stat1Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
               <div><label style={labelStyle}>Estadística 2 – Valor</label><input type="text" name="stat2Value" value={localSettings.stat2Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
               <div><label style={labelStyle}>Estadística 2 – Etiqueta</label><input type="text" name="stat2Label" value={localSettings.stat2Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>URL Imagen de la Tienda</label><input type="url" name="aboutImage" value={localSettings.aboutImage || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>URL Imagen de la Tienda (Sección "Acerca de")</label><input type="url" name="aboutImage" value={localSettings.aboutImage || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>🖼️ URL Imagen General – sección "¿Por qué elegirnos?" (opcional, aparece al lado de las razones)</label>
+                <input type="url" name="whyUsSectionImage" value={localSettings.whyUsSectionImage || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://..." />
+                {localSettings.whyUsSectionImage && (
+                  <img src={localSettings.whyUsSectionImage} alt="Preview" style={{ marginTop: '10px', width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '10px', border: '1px solid var(--glass-border)' }} onError={e => e.target.style.display='none'} />
+                )}
+              </div>
             </div>
           </div>
 
