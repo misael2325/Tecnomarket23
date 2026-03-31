@@ -1,100 +1,140 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { collection, doc, setDoc, deleteDoc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 const InventoryContext = createContext();
 
 const defaultSettings = {
-  storeName: 'Capital Celular',
-  heroBadge: 'Nuevos Modelos 2026',
+  storeName: 'MovilTech',
+  heroBadge: 'Catálogo Oficial 2026',
   heroTitle: 'La Capital de los',
   heroTitleHighlight: 'Smartphones',
-  heroDescription: 'Descubre la mejor tecnología, dispositivos de gama alta y ofertas exclusivas que no encontrarás en ningún otro lugar del país.',
-  aboutTitle: '¿Por qué elegir Capital Celular?',
-  aboutP1: 'Somos una tienda especializada en la venta de celulares de gama alta, accesorios y equipos tecnológicos con los precios más competitivos del mercado en República Dominicana.',
-  aboutP2: 'Contamos con más de 10 años de experiencia importando equipos originales y brindando la mejor garantía y servicio técnico a nuestros clientes.',
+  heroDescription: 'Descubre la mejor tecnología, dispositivos de gama alta y ofertas exclusivas que no encontrarás en ningún otro lugar.',
+  aboutTitle: '¿Por qué elegir MovilTech?',
+  aboutP1: 'Somos una tienda especializada en la venta de celulares de gama alta, accesorios y equipos tecnológicos con los precios más competitivos.',
+  aboutP2: 'Contamos con más de 10 años de experiencia importando equipos originales y brindando la mejor garantía y servicio técnico.',
   stat1Value: '10K+',
   stat1Label: 'Clientes Felices',
   stat2Value: '1 Año',
   stat2Label: 'Garantía Full',
   aboutImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
-  footerDesc: 'Centro de importación y distribución de dispositivos móviles, accesorios smart y servicio autorizado.',
-  contactAddress: 'Av. Winston Churchill, Santo Domingo',
-  contactPhone: '+1 (809) 555-0123'
+  footerDesc: 'Centro de importación y distribución de dispositivos móviles, inteligente y servicio autorizado.',
+  contactAddress: 'Santo Domingo, República Dominicana',
+  contactPhone: '+1 (809) 555-0123',
+  whyUsItems: [
+    { id: '1', icon: '🔒', title: 'Garantía Real', desc: 'Todos nuestros equipos incluyen garantía de 1 año con soporte técnico dedicado.' },
+    { id: '2', icon: '✈️', title: 'Importación Directa', desc: 'Traemos equipos originales directamente de fábrica, sin intermediarios.' },
+    { id: '3', icon: '💰', title: 'Mejor Precio', desc: 'Precios competitivos y opciones de financiamiento flexible para todos.' },
+    { id: '4', icon: '⭐', title: '10 Años de Experiencia', desc: 'Una década atendiendo clientes con honestidad y profesionalismo.' },
+  ]
 };
 
-const defaultCategories = [
-  {
-    id: 'apple',
-    brand: 'Apple',
-    model: 'Catálogo iPhone',
-    image: 'https://images.unsplash.com/photo-1605236453806-6ff36851218e?w=800&q=80',
-    description: 'Toda la linea de dispositivos Apple, desde el iPhone 11 hasta los más recientes modelos Pro Max.',
-    basePrice: 15000,
-    stock: [] 
-  },
-  {
-    id: 'samsung',
-    brand: 'Samsung',
-    model: 'Dispositivos Galaxy',
-    image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=800&q=80',
-    description: 'La mejor tecnología Android. Series S, Z Fold, Z Flip y familia A disponibles.',
-    basePrice: 10000,
-    stock: []
-  },
-  {
-    id: 'xiaomi',
-    brand: 'Xiaomi',
-    model: 'Familia Redmi y Poco',
-    image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&q=80',
-    description: 'Calidad y precio insuperable. Rendimiento puro al alcance de tu bolsillo.',
-    basePrice: 6000,
-    stock: []
-  }
-];
-
 export function InventoryProvider({ children }) {
-  const [products, setProducts] = useState(() => {
-    // Use new key to avoid breaking current app DB shapes
-    const saved = localStorage.getItem('capital_celular_categories_v2');
-    if (saved) return JSON.parse(saved);
-    return defaultCategories;
-  });
-
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem('capital_celular_settings');
-    if (saved) return JSON.parse(saved);
-    return defaultSettings;
-  });
+  const [products, setProducts] = useState([]);
+  const [settings, setSettings] = useState(defaultSettings);
+  const [offers, setOffers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    localStorage.setItem('capital_celular_categories_v2', JSON.stringify(products));
-  }, [products]);
+    // Suscripción en Tiempo Real a Settings
+    const unsubSettings = onSnapshot(doc(db, "settings", "global"), (docSnap) => {
+      if (docSnap.exists()) {
+        setSettings(prev => ({ ...defaultSettings, ...docSnap.data() }));
+      } else {
+        setDoc(doc(db, "settings", "global"), defaultSettings);
+      }
+    }, (error) => {
+      console.warn("Error leyendo settings de Firebase. Operando con fallback.", error);
+    });
 
-  useEffect(() => {
-    localStorage.setItem('capital_celular_settings', JSON.stringify(settings));
-  }, [settings]);
+    // Suscripción en Tiempo Real a Categorías/Modelos
+    const unsubProducts = onSnapshot(collection(db, "categories"), (snapshot) => {
+      const items = [];
+      snapshot.forEach(doc => {
+        items.push({ id: doc.id, ...doc.data() });
+      });
+      setProducts(items);
+      setLoading(false);
+    }, (error) => {
+      console.warn("Error leyendo categorías de Firebase. ¿Reglas de acceso configuradas?", error);
+      setLoading(false);
+    });
 
-  const updateProduct = (updatedProduct) => {
-    setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+    // Suscripción en Tiempo Real a Ofertas
+    const unsubOffers = onSnapshot(collection(db, "offers"), (snapshot) => {
+      const items = [];
+      snapshot.forEach(doc => {
+        items.push({ id: doc.id, ...doc.data() });
+      });
+      setOffers(items);
+    }, (error) => {
+      console.warn("Error leyendo ofertas de Firebase.", error);
+    });
+
+    return () => {
+      unsubSettings();
+      unsubProducts();
+      unsubOffers();
+    };
+  }, []);
+
+  // Controladores de Productos/Stock
+  const updateProduct = async (updatedProduct) => {
+    try {
+      await setDoc(doc(db, "categories", updatedProduct.id), updatedProduct);
+    } catch (e) { console.error("Error al actualizar unidad física: ", e); }
   };
   
-  const addNewModel = (newModel) => {
-    setProducts([...products, { ...newModel, stock: [] }]);
+  const addNewModel = async (newModel) => {
+    try {
+      await setDoc(doc(db, "categories", newModel.id), newModel);
+    } catch (e) { console.error("Error guardando nueva marca: ", e); }
   };
-  const updateModel = (updatedModel) => {
-    setProducts(products.map(p => p.id === updatedModel.id ? updatedModel : p));
-  };
-  const deleteModel = (id) => {
-    setProducts(products.filter(p => p.id !== id));
+  
+  const updateModel = async (updatedModel) => {
+    try {
+      await setDoc(doc(db, "categories", updatedModel.id), updatedModel);
+    } catch (e) { console.error("Error actualizando familia: ", e); }
   };
 
-  const updateSettings = (newSettings) => {
-    setSettings(newSettings);
+  const deleteModel = async (id) => {
+    try {
+      await deleteDoc(doc(db, "categories", id));
+    } catch (e) { console.error("Error eliminando categoría: ", e); }
+  };
+
+  // Controladores de Settings
+  const updateSettings = async (newSettings) => {
+    try {
+      await setDoc(doc(db, "settings", "global"), newSettings);
+    } catch (e) { console.error("Error guardando ajustes web: ", e); }
+  };
+
+  // Controladores de Ofertas/Campañas
+  const addOffer = async (offer) => {
+    try {
+      const id = 'offer-' + Date.now();
+      await setDoc(doc(db, "offers", id), { ...offer, id });
+    } catch (e) { console.error("Error creando oferta: ", e); }
+  };
+
+  const updateOffer = async (offer) => {
+    try {
+      await setDoc(doc(db, "offers", offer.id), offer);
+    } catch (e) { console.error("Error actualizando oferta: ", e); }
+  };
+
+  const deleteOffer = async (id) => {
+    try {
+      await deleteDoc(doc(db, "offers", id));
+    } catch (e) { console.error("Error eliminando oferta: ", e); }
   };
 
   return (
     <InventoryContext.Provider value={{ 
       products, updateProduct, addNewModel, updateModel, deleteModel,
-      settings, updateSettings 
+      settings, updateSettings, loading,
+      offers, addOffer, updateOffer, deleteOffer
     }}>
       {children}
     </InventoryContext.Provider>
