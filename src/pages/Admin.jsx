@@ -20,7 +20,8 @@ const DEPARTMENTS = [
   'Tablets',
   'Smartwatches',
   'TV & Entretenimiento',
-  'Accesorios'
+  'Accesorios',
+  'Camaras'
 ];
 
 const emptyCategory = {
@@ -393,16 +394,8 @@ export default function Admin() {
             <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.3rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>📞 Contacto y Redes Sociales</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
               <div>
-                <label style={labelStyle}>📱 Número de Teléfono (WhatsApp)</label>
-                <input type="text" name="contactPhone" value={localSettings.contactPhone || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="+1 (809) 555-0123" />
-              </div>
-              <div>
                 <label style={labelStyle}>📧 Correo Electrónico</label>
                 <input type="email" name="contactEmail" value={localSettings.contactEmail || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="ventas@capitalcelular.com" />
-              </div>
-              <div>
-                <label style={labelStyle}>📍 Dirección de la Tienda</label>
-                <input type="text" name="contactAddress" value={localSettings.contactAddress || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="Santo Domingo, República Dominicana" />
               </div>
               <div style={{ gridColumn: '1 / -1', padding: '15px', background: 'rgba(0,240,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,240,255,0.2)', marginBottom: '10px' }}>
                 <h4 style={{ color: 'var(--primary)', margin: '0 0 10px 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>

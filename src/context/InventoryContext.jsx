@@ -19,8 +19,8 @@ const defaultSettings = {
   stat2Label: 'Garantía Full',
   aboutImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
   footerDesc: 'Centro de importación y distribución de dispositivos móviles, inteligente y servicio autorizado.',
-  contactAddress: 'Santo Domingo, República Dominicana',
-  contactPhone: '+1 (809) 555-0123',
+  contactAddress: 'SAILIN TECNO SMARTPHONE 8QQ7+9R, Arroyo Hondo 94000',
+  contactPhone: '+1 (829) 424-1236',
   contactEmail: 'ventas@capitalcelular.com',
   socialInstagram: 'https://instagram.com/capitalcelular',
   socialFacebook: 'https://facebook.com/capitalcelular',
@@ -40,6 +40,7 @@ const defaultSettings = {
   ],
   locationLat: '',
   locationLng: '',
+  instagramWidgetCode: '',
 };
 
 export function InventoryProvider({ children }) {
@@ -57,7 +58,12 @@ export function InventoryProvider({ children }) {
           console.log("Migración de marca: Actualizando a Sailin Tecno...");
           setDoc(doc(db, "settings", "global"), defaultSettings, { merge: true });
         }
-        setSettings(prev => ({ ...defaultSettings, ...data }));
+        setSettings(prev => ({ 
+          ...defaultSettings, 
+          ...data,
+          contactAddress: defaultSettings.contactAddress,
+          contactPhone: defaultSettings.contactPhone 
+        }));
       } else {
         setDoc(doc(db, "settings", "global"), defaultSettings);
       }
