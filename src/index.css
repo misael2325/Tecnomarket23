@@ -10,6 +10,11 @@
   --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -143,12 +148,14 @@ nav {
   margin-bottom: 20px;
   background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .hero h1 span {
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -211,6 +218,7 @@ nav {
   font-weight: 800;
   background: linear-gradient(90deg, #fff, #8892b0);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 15px;
 }
@@ -388,16 +396,63 @@ footer {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (max-width: 1100px) {
+  .hero h1 { font-size: 4rem; }
+}
+
 @media (max-width: 900px) {
-  .hero h1 { font-size: 3.5rem; }
+  .hero h1 { font-size: 3rem; }
   .about-grid { grid-template-columns: 1fr; padding: 30px; }
   .footer-content { flex-direction: column; text-align: center; }
 }
 
 @media (max-width: 768px) {
   .nav-links { display: none; }
-  .hero h1 { font-size: 2.8rem; }
-  .section { padding: 60px 5%; }
+  .hero h1 { font-size: 2.2rem; }
+  .hero p { font-size: 1rem; margin-bottom: 25px; }
+  .section { padding: 50px 5%; }
+  .section-title h2 { font-size: 2.2rem; }
+  .nav-brand { font-size: 1.2rem; }
+  nav { padding: 0.6rem 5%; }
+  .about-text h2 { font-size: 2rem; }
+  
+  /* Catalog Specific Mobile Optimization */
+  .productos {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    gap: 15px !important;
+    padding: 10px 5% 30px !important;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .productos::-webkit-scrollbar {
+    display: none;
+  }
+
+  .card {
+    min-width: 260px;
+    max-width: 260px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    padding: 15px;
+  }
+
+  .card-img-wrapper {
+    height: 180px;
+    margin-bottom: 12px;
+  }
+
+  .card-title { font-size: 1.15rem; }
+  .card-price { font-size: 1.3rem; }
+  
+  .card .btn {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
 }
 
 /* Administrador y Detalles styles extras */

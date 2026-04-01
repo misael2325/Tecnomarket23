@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../firebase';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const OFFER_TEMPLATES = [
   { name: 'Black Friday', emoji: '🖤', discount: 30, color: '#111111', accentColor: '#f59e0b' },
@@ -10,6 +13,23 @@ const OFFER_TEMPLATES = [
   { name: 'Año Nuevo', emoji: '🎆', discount: 25, color: '#1e1b4b', accentColor: '#818cf8' },
   { name: 'Aniversario', emoji: '🥳', discount: 10, color: '#1c1917', accentColor: '#00f0ff' },
 ];
+
+const DEPARTMENTS = [
+  'Celulares',
+  'Laptops & Computadoras',
+  'Tablets',
+  'Smartwatches',
+  'TV & Entretenimiento',
+  'Accesorios'
+];
+
+const emptyCategory = {
+  model: '',
+  description: '',
+  image: '',
+  basePrice: 0,
+  department: 'Celulares',
+};
 
 const emptyOffer = {
   name: '',
@@ -21,6 +41,7 @@ const emptyOffer = {
   bgColor: '#0f172a',
   accentColor: '#00f0ff',
   active: true,
+  image: '',
 };
 
 export default function Admin() {
@@ -29,6 +50,8 @@ export default function Admin() {
     settings, updateSettings,
     offers, addOffer, updateOffer, deleteOffer
   } = useInventory();
+  
+  const { isSuperAdmin } = useAuth();
   
   const [activeTab, setActiveTab] = useState('settings');
 
@@ -45,6 +68,9 @@ export default function Admin() {
   // --- Offers Tab State ---
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [newOffer, setNewOffer] = useState(emptyOffer);
+
+  // --- Users Tab State ---
+  const [users, setUsers] = useState([]);
 
   // Sync localSettings when global settings load from Firebase
   useEffect(() => {
@@ -70,6 +96,16 @@ export default function Admin() {
     };
     reader.readAsDataURL(file);
   };
+
+  // Sync Users
+  useEffect(() => {
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      const items = [];
+      snapshot.forEach(doc => items.push({ ...doc.data(), id: doc.id }));
+      setUsers(items);
+    });
+    return () => unsubUsers();
+  }, []);
 
   const ImageInput = ({ label, name, value, onChange, onUpload, placeholder }) => (
     <div style={{ marginBottom: '15px' }}>
@@ -151,6 +187,7 @@ export default function Admin() {
       model: formData.get('model'),
       description: formData.get('description'),
       image: formData.get('image'),
+      department: formData.get('department'),
       basePrice: 0,
       stock: []
     };
@@ -230,6 +267,30 @@ export default function Admin() {
     return (!offer.startDate || today >= offer.startDate) && (!offer.endDate || today <= offer.endDate);
   };
 
+  // --- USER MANAGEMENT HANDLERS ---
+  const handleUpdateUserStatus = async (userId, newStatus) => {
+    try {
+      await updateDoc(doc(db, "users", userId), { status: newStatus });
+      alert(`Usuario actualizado a: ${newStatus}`);
+    } catch (e) { console.error("Error actualizando usuario:", e); }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
+      try {
+        await deleteDoc(doc(db, "users", userId));
+        alert('Usuario eliminado.');
+      } catch (e) { console.error("Error eliminando usuario:", e); }
+    }
+  };
+  
+  const handleUpdateUserRole = async (userId, newRole) => {
+    try {
+      await updateDoc(doc(db, "users", userId), { role: newRole });
+      alert(`Rol actualizado a: ${newRole}`);
+    } catch (e) { console.error("Error actualizando rol:", e); }
+  };
+
   // ======  STYLES  ======
   const inputStyle = { width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'white', boxSizing: 'border-box' };
   const labelStyle = { display: 'block', color: 'var(--text-muted)', marginBottom: '6px', fontSize: '0.9rem' };
@@ -253,7 +314,8 @@ export default function Admin() {
           { key: 'models',   label: '📂 Familias / Marcas' },
           { key: 'stock',    label: '📦 Celulares Físicos' },
           { key: 'offers',   label: '🎉 Campañas' },
-        ].map(tab => (
+          { key: 'users',    label: '👥 Usuarios' },
+        ].filter(tab => tab.key !== 'users' || isSuperAdmin).map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
             className={`btn ${activeTab !== tab.key ? 'btn-outline' : ''}`}
             style={{ borderRadius: '8px', border: activeTab === tab.key ? 'none' : '1px solid var(--primary)' }}>
@@ -342,6 +404,24 @@ export default function Admin() {
                 <label style={labelStyle}>📍 Dirección de la Tienda</label>
                 <input type="text" name="contactAddress" value={localSettings.contactAddress || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="Santo Domingo, República Dominicana" />
               </div>
+              <div style={{ gridColumn: '1 / -1', padding: '15px', background: 'rgba(0,240,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,240,255,0.2)', marginBottom: '10px' }}>
+                <h4 style={{ color: 'var(--primary)', margin: '0 0 10px 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="material-icons">my_location</span> Ubicación Precisa (Coordenadas)
+                </h4>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '15px' }}>
+                  ¿Tu local no aparece en el mapa? Haz clic derecho en Google Maps sobre tu puerta y copia las coordenadas (Ej: 18.4861, -69.9312).
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div>
+                    <label style={{ ...labelStyle, fontSize: '0.8rem' }}>Latitud</label>
+                    <input type="text" name="locationLat" value={localSettings.locationLat || ''} onChange={handleSettingsChange} placeholder="Ej: 18.4861" style={inputStyle} />
+                  </div>
+                  <div>
+                    <label style={{ ...labelStyle, fontSize: '0.8rem' }}>Longitud</label>
+                    <input type="text" name="locationLng" value={localSettings.locationLng || ''} onChange={handleSettingsChange} placeholder="Ej: -69.9312" style={inputStyle} />
+                  </div>
+                </div>
+              </div>
               <div>
                 <label style={labelStyle}>📸 Enlace de Instagram</label>
                 <input type="url" name="socialInstagram" value={localSettings.socialInstagram || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://instagram.com/..." />
@@ -420,28 +500,53 @@ export default function Admin() {
           <button className="btn" onClick={() => { setEditingProduct(null); setShowProductModal(true); }} style={{ marginBottom: '20px' }}>
             <span className="material-icons">add</span> Crear Nueva Marca o Categoría
           </button>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-            {products.map(p => (
-              <div key={p.id} className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'row', gap: '20px', alignItems: 'center', background: 'var(--bg-card)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-                <img src={p.image} alt={p.model} style={{ width: '80px', height: '80px', objectFit: 'contain', background: '#111', borderRadius: '12px' }} />
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ margin: 0, color: 'white' }}>{p.model}</h3>
-                  <p style={{ margin: '5px 0', color: 'var(--text-muted)' }}>{p.brand} • {p.stock.length} unidades</p>
+          
+          {/* FAMILIES / CATEGORIES SECTION */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '40px' }}>
+            {DEPARTMENTS.map(dept => {
+              const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
+              if (deptProducts.length === 0) return null;
+              
+              return (
+                <div key={dept}>
+                  <h3 style={{ color: 'var(--primary)', marginBottom: '15px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span className="material-icons">
+                      {dept === 'Celulares' ? 'smartphone' : 
+                       dept === 'Laptops & Computadoras' ? 'laptop' :
+                       dept === 'Tablets' ? 'tablet' :
+                       dept === 'Smartwatches' ? 'watch' :
+                       dept === 'TV & Entretenimiento' ? 'tv' : 'settings_input_component'}
+                    </span>
+                    {dept}
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                    {deptProducts.map(product => (
+                      <div key={product.id} style={{ background: 'var(--bg-card)', border: '1px solid var(--glass-border)', borderRadius: '15px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ height: '140px', background: '#111', overflow: 'hidden', position: 'relative' }}>
+                          <img src={product.image} alt={product.model} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '5px' }}>
+                            <button onClick={() => handleEditProduct(product)} style={{ background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                              <span className="material-icons" style={{ fontSize: '1.2rem' }}>edit</span>
+                            </button>
+                            <button onClick={() => deleteProduct(product.id)} style={{ background: 'rgba(255,0,0,0.6)', color: 'white', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                              <span className="material-icons" style={{ fontSize: '1.2rem' }}>delete</span>
+                            </button>
+                          </div>
+                        </div>
+                        <div style={{ padding: '15px' }}>
+                          <h4 style={{ color: 'white', margin: '0 0 5px 0' }}>{product.model}</h4>
+                          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', height: '40px', overflow: 'hidden' }}>{product.description}</p>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                            <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Stock: {product.stock.length}</span>
+                            <button onClick={() => { setSelectedProduct(product.id); setShowStockModal(true); }} className="btn" style={{ padding: '5px 12px', fontSize: '0.8rem' }}>Gestionar Stock</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button 
-                    className="action-btn" 
-                    onClick={() => handleEditProduct(p)}
-                    style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--primary)', border: 'none', cursor: 'pointer' }}
-                  >
-                    <span className="material-icons">edit</span>
-                  </button>
-                  <button className="action-btn delete-btn" onClick={() => deleteProduct(p.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                    <span className="material-icons" style={{ color: '#ef4444' }}>delete</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -519,13 +624,18 @@ export default function Admin() {
                 const live = isOfferLive(offer);
                 return (
                   <div key={offer.id} style={{ borderRadius: '16px', overflow: 'hidden', border: `2px solid ${live ? offer.accentColor || 'var(--primary)' : 'var(--glass-border)'}`, transition: 'all 0.3s' }}>
-                    <div style={{ background: offer.bgColor || 'var(--bg-card)', padding: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <span style={{ fontSize: '2.5rem' }}>{offer.emoji}</span>
-                      <div style={{ flex: 1 }}>
+                    <div style={{ background: offer.bgColor || 'var(--bg-card)', padding: '20px', display: 'flex', alignItems: 'center', gap: '15px', position: 'relative' }}>
+                      {offer.image && (
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.15, pointerEvents: 'none' }}>
+                          <img src={offer.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="bg" />
+                        </div>
+                      )}
+                      <span style={{ fontSize: '2.5rem', zIndex: 1 }}>{offer.emoji}</span>
+                      <div style={{ flex: 1, zIndex: 1 }}>
                         <h3 style={{ color: 'white', margin: 0, fontSize: '1.2rem' }}>{offer.name}</h3>
                         {offer.discount > 0 && <span style={{ color: offer.accentColor || '#00f0ff', fontWeight: 700, fontSize: '1.1rem' }}>{offer.discount}% OFF</span>}
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', zIndex: 1 }}>
                         <span style={{ fontSize: '0.7rem', color: live ? '#4ade80' : '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           {live ? '● ACTIVA' : '○ INACTIVA'}
                         </span>
@@ -576,10 +686,13 @@ export default function Admin() {
                     <option value="C" style={{ background: 'var(--bg-dark)' }}>Grado C</option>
                   </select>
                 </div>
-                <div>
-                  <label style={labelStyle}>Batería %</label>
-                  <input type="number" min="1" max="100" required value={newStock.battery} onChange={e => setNewStock({ ...newStock, battery: e.target.value })} style={inputStyle} />
-                </div>
+                {/* Battery - Only show for battery-operated devices */}
+                {selectedProduct && !['TV & Entretenimiento', 'Accesorios'].includes(products.find(p => p.id === selectedProduct)?.department) && (
+                  <div>
+                    <label style={labelStyle}>🔋 Condición de Batería (%)</label>
+                    <input type="number" min="1" max="100" required value={newStock.battery} onChange={e => setNewStock({ ...newStock, battery: e.target.value })} style={inputStyle} placeholder="Ej: 95" />
+                  </div>
+                )}
               </div>
               <label style={labelStyle}>Precio (RD$)</label>
               <input type="number" required placeholder="Ej: 35000" value={newStock.price} onChange={e => setNewStock({ ...newStock, price: e.target.value })} style={{ ...inputStyle, marginBottom: '20px' }} />
@@ -610,6 +723,11 @@ export default function Admin() {
                 </div>
               </div>
               
+              <label className="form-label">Departamento</label>
+              <select name="department" className="form-input" defaultValue={editingProduct?.department || 'Celulares'} style={{ marginBottom: '15px' }}>
+                {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+              </select>
+
               <label className="form-label">Descripción</label>
               <textarea name="description" className="form-input" defaultValue={editingProduct?.description || ''} rows="2" style={{ marginBottom: '15px' }} />
               
@@ -697,6 +815,16 @@ export default function Admin() {
                 </div>
               </div>
 
+              <div style={{ marginBottom: '20px' }}>
+                <ImageInput 
+                  label="🖼️ Imagen Publicitaria (Opcional)" 
+                  name="offerImage" 
+                  value={newOffer.image} 
+                  onChange={(e) => setNewOffer({ ...newOffer, image: e.target.value })} 
+                  onUpload={(e) => handleFileUpload(e, 'image', false, (base64) => setNewOffer({ ...newOffer, image: base64 }))}
+                />
+              </div>
+
               {/* Preview */}
               <div style={{ background: newOffer.bgColor, borderRadius: '10px', padding: '15px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px', border: `2px solid ${newOffer.accentColor}` }}>
                 <span style={{ fontSize: '2rem' }}>{newOffer.emoji}</span>
@@ -716,6 +844,87 @@ export default function Admin() {
                 <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowOfferModal(false); setNewOffer(emptyOffer); }}>Cancelar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===== USERS TAB ===== */}
+      {activeTab === 'users' && (
+        <div>
+          <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.4rem' }}>Gestión de Usuarios</h2>
+          <div style={{ display: 'grid', gap: '15px' }}>
+            {users.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)' }}>No hay usuarios registrados aún.</p>
+            ) : (
+              users.map(user => {
+                const isTargetSuper = user.email === 'elchelpo2325@gmail.com';
+                return (
+                  <div key={user.id} style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: isTargetSuper ? '#f59e0b' : 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 700, fontSize: '1.2rem' }}>
+                        {user.name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h4 style={{ color: 'white', margin: 0 }}>{user.name || 'Sin nombre'} {isTargetSuper && <span style={{ color: '#f59e0b', fontSize: '0.7rem' }}>(SUPER)</span>}</h4>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>{user.email}</p>
+                        <span style={{ 
+                          display: 'inline-block', 
+                          marginTop: '5px', 
+                          fontSize: '0.75rem', 
+                          padding: '2px 8px', 
+                          borderRadius: '4px', 
+                          background: user.status === 'approved' ? '#065f46' : user.status === 'rejected' ? '#881337' : '#92400e',
+                          color: 'white',
+                          fontWeight: 600
+                        }}>
+                          {user.status?.toUpperCase() || 'PENDING'}
+                        </span>
+                        <span style={{ 
+                          display: 'inline-block', 
+                          marginLeft: '8px', 
+                          fontSize: '0.75rem', 
+                          padding: '2px 8px', 
+                          borderRadius: '4px', 
+                          background: user.role === 'admin' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                          color: user.role === 'admin' ? 'black' : 'white',
+                          fontWeight: 700
+                        }}>
+                          {user.role?.toUpperCase() || 'USER'}
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      {!isTargetSuper ? (
+                        <>
+                          {/* Role Management (Only for Super Admin) */}
+                          {isSuperAdmin && (
+                            <div style={{ display: 'flex', gap: '5px', marginRight: '10px', borderRight: '1px solid var(--glass-border)', paddingRight: '10px' }}>
+                              {user.role === 'admin' ? (
+                                <button onClick={() => handleUpdateUserRole(user.id, 'user')} className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.75rem' }}>Quitar Admin</button>
+                              ) : (
+                                <button onClick={() => handleUpdateUserRole(user.id, 'admin')} className="btn" style={{ padding: '6px 10px', fontSize: '0.75rem' }}>Hacer Admin</button>
+                              )}
+                            </div>
+                          )}
+                          
+                          {user.status !== 'approved' && (
+                            <button onClick={() => handleUpdateUserStatus(user.id, 'approved')} className="btn" style={{ padding: '8px 15px', fontSize: '0.85rem' }}>Aprobar</button>
+                          )}
+                          {user.status !== 'rejected' && (
+                            <button onClick={() => handleUpdateUserStatus(user.id, 'rejected')} className="btn btn-outline" style={{ padding: '8px 15px', fontSize: '0.85rem', border: '1px solid #ef4444', color: '#ef4444' }}>Rechazar</button>
+                          )}
+                          <button onClick={() => handleDeleteUser(user.id)} style={{ padding: '8px 10px', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
+                            <span className="material-icons">delete</span>
+                          </button>
+                        </>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>Cuenta Protegida</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}

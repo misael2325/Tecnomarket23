@@ -5,14 +5,14 @@ import { db } from "../firebase";
 const InventoryContext = createContext();
 
 const defaultSettings = {
-  storeName: 'MovilTech',
-  heroBadge: 'Catálogo Oficial 2026',
-  heroTitle: 'La Capital de los',
-  heroTitleHighlight: 'Smartphones',
-  heroDescription: 'Descubre la mejor tecnología, dispositivos de gama alta y ofertas exclusivas que no encontrarás en ningún otro lugar.',
-  aboutTitle: '¿Por qué elegir MovilTech?',
-  aboutP1: 'Somos una tienda especializada en la venta de celulares de gama alta, accesorios y equipos tecnológicos con los precios más competitivos.',
-  aboutP2: 'Contamos con más de 10 años de experiencia importando equipos originales y brindando la mejor garantía y servicio técnico.',
+    storeName: 'Sailin Tecno SmartPhone',
+    heroBadge: 'Tecnología a tu Alcance',
+    heroTitle: 'Sailin Tecno',
+    heroTitleHighlight: 'SmartPhone',
+    heroDescription: 'Tu destino tecnológico de confianza. Equipos de alta gama, accesorios originales y el mejor servicio técnico garantizado.',
+    aboutTitle: 'Nuestra Historia',
+    aboutP1: 'Sailin Tecno SmartPhone nació de la pasión por la tecnología y el compromiso de ofrecer lo mejor a nuestra comunidad. No solo vendemos equipos; brindamos la seguridad de adquirir dispositivos certificados con garantía real.',
+    aboutP2: 'Somos especialistas en importación directa, lo que nos permite ofrecer precios competitivos sin sacrificar la calidad. Con más de 10 años en el mercado, hemos construido una relación de confianza basada en la transparencia y el servicio técnico de excelencia.',
   stat1Value: '10K+',
   stat1Label: 'Clientes Felices',
   stat2Value: '1 Año',
@@ -37,7 +37,9 @@ const defaultSettings = {
     { id: '2', icon: '✈️', title: 'Importación Directa', desc: 'Traemos equipos originales directamente de fábrica, sin intermediarios.' },
     { id: '3', icon: '💰', title: 'Mejor Precio', desc: 'Precios competitivos y opciones de financiamiento flexible para todos.' },
     { id: '4', icon: '⭐', title: '10 Años de Experiencia', desc: 'Una década atendiendo clientes con honestidad y profesionalismo.' },
-  ]
+  ],
+  locationLat: '',
+  locationLng: '',
 };
 
 export function InventoryProvider({ children }) {
@@ -50,7 +52,12 @@ export function InventoryProvider({ children }) {
     // Suscripción en Tiempo Real a Settings
     const unsubSettings = onSnapshot(doc(db, "settings", "global"), (docSnap) => {
       if (docSnap.exists()) {
-        setSettings(prev => ({ ...defaultSettings, ...docSnap.data() }));
+        const data = docSnap.data();
+        if (data.storeName === 'MovilTech' || data.storeName === 'Capital Celular' || data.heroTitle === 'La Capital de los') {
+          console.log("Migración de marca: Actualizando a Sailin Tecno...");
+          setDoc(doc(db, "settings", "global"), defaultSettings, { merge: true });
+        }
+        setSettings(prev => ({ ...defaultSettings, ...data }));
       } else {
         setDoc(doc(db, "settings", "global"), defaultSettings);
       }

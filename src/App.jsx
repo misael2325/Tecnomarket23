@@ -1,25 +1,41 @@
-import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import ProductDetails from './pages/ProductDetails';
-import Catalog from './pages/Catalog';
-import Admin from './pages/Admin';
-import { InventoryProvider } from './context/InventoryContext';
-import './index.css';
+import React from 'react'
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'
+import { InventoryProvider } from './context/InventoryContext'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import Home from './pages/Home'
+import Catalog from './pages/Catalog'
+import ProductDetails from './pages/ProductDetails'
+import Admin from './pages/Admin'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import PendingApproval from './pages/PendingApproval'
+import './index.css'
 
 function App() {
   return (
-    <InventoryProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/catalog" element={<Catalog />} />
-          <Route path="/device/:id" element={<ProductDetails />} />
-          <Route path="/admin" element={<Admin />} />
-        </Routes>
-      </Router>
-    </InventoryProvider>
-  );
+    <Router>
+      <AuthProvider>
+        <InventoryProvider>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/pending-approval" element={<PendingApproval />} />
+            
+            <Route path="/catalog" element={<Catalog />} />
+            <Route path="/device/:id" element={<ProductDetails />} />
+            
+            <Route path="/admin" element={
+              <ProtectedRoute adminOnly={true}>
+                <Admin />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </InventoryProvider>
+      </AuthProvider>
+    </Router>
+  )
 }
 
 export default App;
