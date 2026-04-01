@@ -633,7 +633,7 @@ const {
       )}
 
       {/* ===== STOCK TAB ===== */}
-      {activeTab === 'stock' && (
+{activeTab === 'stock' && (
         <div>
           {products.length === 0 ? (
             <p style={{ color: 'var(--text-muted)' }}>Crea categorías de marcas primero en Familias / Marcas.</p>
