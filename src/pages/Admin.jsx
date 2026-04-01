@@ -14,22 +14,15 @@ const OFFER_TEMPLATES = [
   { name: 'Aniversario', emoji: '🥳', discount: 10, color: '#1c1917', accentColor: '#00f0ff' },
 ];
 
-const DEPARTMENTS = [
-  'Celulares',
-  'Laptops & Computadoras',
-  'Tablets',
-  'Smartwatches',
-  'TV & Entretenimiento',
-  'Accesorios',
-  'Camaras'
-];
+// DEPARTMENTS ahora dinámico desde context
+// const DEPARTMENTS = [...]
 
 const emptyCategory = {
   model: '',
   description: '',
   image: '',
   basePrice: 0,
-  department: 'Celulares',
+  department: '',
 };
 
 const emptyOffer = {
@@ -46,10 +39,11 @@ const emptyOffer = {
 };
 
 export default function Admin() {
-  const { 
+const { 
     products, addProduct, deleteProduct, updateProduct, 
     settings, updateSettings,
-    offers, addOffer, updateOffer, deleteOffer
+    offers, addOffer, updateOffer, deleteOffer,
+    departments, updateDepartments
   } = useInventory();
   
   const { isSuperAdmin } = useAuth();
@@ -65,6 +59,11 @@ export default function Admin() {
   const [localSettings, setLocalSettings] = useState(settings);
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+
+  // --- Departments Management ---
+  const [newDepartment, setNewDepartment] = useState('');
+  const [editingDepartmentIndex, setEditingDepartmentIndex] = useState(-1);
+  const [tempDepartmentName, setTempDepartmentName] = useState('');
 
   // --- Offers Tab State ---
   const [showOfferModal, setShowOfferModal] = useState(false);
@@ -490,13 +489,102 @@ export default function Admin() {
 
       {activeTab === 'models' && (
         <div>
+          {/* GESTIÓN DE DEPARTAMENTOS */}
+          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)', marginBottom: '30px' }}>
+            <h3 style={{ color: 'var(--primary)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="material-icons">category</span> Gestión de Departamentos
+            </h3>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+              <input 
+                type="text" 
+                placeholder="Nuevo departamento (ej: Andadores)" 
+                value={newDepartment} 
+                onChange={e => setNewDepartment(e.target.value.trim())} 
+                style={{ flex: 1, minWidth: '250px', ...inputStyle }} 
+              />
+              <button 
+                className="btn" 
+                onClick={() => {
+                  if (newDepartment && !departments.includes(newDepartment)) {
+                    updateDepartments([...departments, newDepartment]);
+                    setNewDepartment('');
+                  }
+                }} 
+                disabled={!newDepartment || departments.includes(newDepartment)}
+              >
+                <span className="material-icons">add</span> Agregar
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              {departments.map((dept, index) => (
+                <div key={dept} style={{ 
+                  background: editingDepartmentIndex === index ? 'rgba(0,240,255,0.1)' : 'rgba(255,255,255,0.05)', 
+                  padding: '8px 16px', borderRadius: '20px', border: '1px solid var(--glass-border)',
+                  display: 'flex', alignItems: 'center', gap: '8px' 
+                }}>
+                  {editingDepartmentIndex === index ? (
+                    <>
+                      <input 
+                        value={tempDepartmentName} 
+                        onChange={e => setTempDepartmentName(e.target.value)} 
+                        style={{ background: 'transparent', border: 'none', color: 'white', width: '120px', fontSize: '0.9rem' }} 
+                        autoFocus 
+                      />
+                      <button onClick={() => {
+                        const newDepts = [...departments];
+                        newDepts[index] = tempDepartmentName.trim();
+                        updateDepartments(newDepts.filter(d => d.trim()));
+                        setEditingDepartmentIndex(-1);
+                        setTempDepartmentName('');
+                      }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer' }}>
+                        <span className="material-icons">check</span>
+                      </button>
+                      <button onClick={() => {
+                        setEditingDepartmentIndex(-1);
+                        setTempDepartmentName('');
+                      }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
+                        <span className="material-icons">close</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontWeight: 500, color: 'white' }}>{dept}</span>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        <button 
+                          onClick={() => {
+                            setEditingDepartmentIndex(index);
+                            setTempDepartmentName(dept);
+                          }} 
+                          style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: 0, width: '24px', height: '24px' }}
+                          title="Editar"
+                        >
+                          <span className="material-icons" style={{ fontSize: '1rem' }}>edit</span>
+                        </button>
+                        <button 
+                          onClick={() => updateDepartments(departments.filter((_, i) => i !== index))} 
+                          style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0, width: '24px', height: '24px' }}
+                          title="Eliminar"
+                        >
+                          <span className="material-icons" style={{ fontSize: '1rem' }}>delete</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+            {departments.length === 0 && (
+              <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '20px' }}>No hay departamentos. Agrega el primero para organizar tus marcas.</p>
+            )}
+          </div>
+
           <button className="btn" onClick={() => { setEditingProduct(null); setShowProductModal(true); }} style={{ marginBottom: '20px' }}>
             <span className="material-icons">add</span> Crear Nueva Marca o Categoría
           </button>
           
           {/* FAMILIES / CATEGORIES SECTION */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '40px' }}>
-            {DEPARTMENTS.map(dept => {
+            {departments.map(dept => {
               const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
               if (deptProducts.length === 0) return null;
               
@@ -717,9 +805,21 @@ export default function Admin() {
               </div>
               
               <label className="form-label">Departamento</label>
-              <select name="department" className="form-input" defaultValue={editingProduct?.department || 'Celulares'} style={{ marginBottom: '15px' }}>
-                {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
-              </select>
+              <div style={{ position: 'relative' }}>
+                <select 
+                  name="department" 
+                  className="form-input" 
+                  defaultValue={editingProduct?.department || departments[0] || ''} 
+                  style={{ marginBottom: '15px', paddingRight: '100px' }}
+                >
+                  <option value="">-- Selecciona --</option>
+                  {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                  <option value="otro">➕ Otro (Nuevo)</option>
+                </select>
+                <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: '5px' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>o escribe libre</span>
+                </div>
+              </div>
 
               <label className="form-label">Descripción</label>
               <textarea name="description" className="form-input" defaultValue={editingProduct?.description || ''} rows="2" style={{ marginBottom: '15px' }} />

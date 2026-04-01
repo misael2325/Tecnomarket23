@@ -5,14 +5,14 @@ import { db } from "../firebase";
 const InventoryContext = createContext();
 
 const defaultSettings = {
-    storeName: 'Sailin Tecno SmartPhone',
-    heroBadge: 'Tecnología a tu Alcance',
-    heroTitle: 'Sailin Tecno',
-    heroTitleHighlight: 'SmartPhone',
-    heroDescription: 'Tu destino tecnológico de confianza. Equipos de alta gama, accesorios originales y el mejor servicio técnico garantizado.',
-    aboutTitle: 'Nuestra Historia',
-    aboutP1: 'Sailin Tecno SmartPhone nació de la pasión por la tecnología y el compromiso de ofrecer lo mejor a nuestra comunidad. No solo vendemos equipos; brindamos la seguridad de adquirir dispositivos certificados con garantía real.',
-    aboutP2: 'Somos especialistas en importación directa, lo que nos permite ofrecer precios competitivos sin sacrificar la calidad. Con más de 10 años en el mercado, hemos construido una relación de confianza basada en la transparencia y el servicio técnico de excelencia.',
+  storeName: 'Sailin Tecno SmartPhone',
+  heroBadge: 'Tecnología a tu Alcance',
+  heroTitle: 'Sailin Tecno',
+  heroTitleHighlight: 'SmartPhone',
+  heroDescription: 'Tu destino tecnológico de confianza. Equipos de alta gama, accesorios originales y el mejor servicio técnico garantizado.',
+  aboutTitle: 'Nuestra Historia',
+  aboutP1: 'Sailin Tecno SmartPhone nació de la pasión por la tecnología y el compromiso de ofrecer lo mejor a nuestra comunidad. No solo vendemos equipos; brindamos la seguridad de adquirir dispositivos certificados con garantía real.',
+  aboutP2: 'Somos especialistas en importación directa, lo que nos permite ofrecer precios competitivos sin sacrificar la calidad. Con más de 10 años en el mercado, hemos construido una relación de confianza basada en la transparencia y el servicio técnico de excelencia.',
   stat1Value: '10K+',
   stat1Label: 'Clientes Felices',
   stat2Value: '1 Año',
@@ -41,6 +41,7 @@ const defaultSettings = {
   locationLat: '',
   locationLng: '',
   instagramWidgetCode: '',
+  departments: ['Celulares', 'Laptops & Computadoras', 'Tablets', 'Smartwatches', 'TV & Entretenimiento', 'Accesorios', 'Camaras']
 };
 
 export function InventoryProvider({ children }) {
@@ -48,6 +49,7 @@ export function InventoryProvider({ children }) {
   const [settings, setSettings] = useState(defaultSettings);
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [departments, setDepartments] = useState(defaultSettings.departments);
 
   useEffect(() => {
     // Suscripción en Tiempo Real a Settings
@@ -64,6 +66,9 @@ export function InventoryProvider({ children }) {
           contactAddress: defaultSettings.contactAddress,
           contactPhone: defaultSettings.contactPhone 
         }));
+        if (data.departments) {
+          setDepartments(data.departments);
+        }
       } else {
         setDoc(doc(db, "settings", "global"), defaultSettings);
       }
@@ -130,6 +135,15 @@ export function InventoryProvider({ children }) {
     } catch (e) { console.error("Error guardando ajustes web: ", e); }
   };
 
+  const updateDepartments = async (newDepts) => {
+    try {
+      await setDoc(doc(db, "settings", "global"), { departments: newDepts }, { merge: true });
+      setDepartments(newDepts);
+    } catch (e) {
+      console.error("Error guardando departamentos: ", e);
+    }
+  };
+
   // Controladores de Ofertas/Campañas
   const addOffer = async (offer) => {
     try {
@@ -154,7 +168,8 @@ export function InventoryProvider({ children }) {
     <InventoryContext.Provider value={{ 
       products, addProduct, updateProduct, deleteProduct,
       settings, updateSettings, loading,
-      offers, addOffer, updateOffer, deleteOffer
+      offers, addOffer, updateOffer, deleteOffer,
+      departments, updateDepartments
     }}>
       {children}
     </InventoryContext.Provider>
@@ -162,3 +177,4 @@ export function InventoryProvider({ children }) {
 }
 
 export const useInventory = () => useContext(InventoryContext);
+
