@@ -363,7 +363,7 @@ const {
             item.specificModel,
             `Grado ${item.grade}`,
             item.battery > 0 ? `${item.battery}%` : 'N/A',
-            `RD$ ${item.price.toLocaleString()}`
+            `RD$ ${item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}`
           ]);
         });
       }
@@ -755,7 +755,7 @@ const {
                             <span style={{ color: 'var(--text-muted)' }}>Bat: {item.battery}%</span>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            <span style={{ fontWeight: 600, color: 'white' }}>RD$ {item.price.toLocaleString()}</span>
+                            <span style={{ fontWeight: 600, color: 'white' }}>RD$ {item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
                             <button className="action-btn delete-btn" onClick={() => handleDeleteStock(product.id, item.id)} title="Vendido/Eliminar" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
                               <span className="material-icons" style={{ color: '#ef4444' }}>delete</span>
                             </button>

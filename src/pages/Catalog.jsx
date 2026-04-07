@@ -189,7 +189,7 @@ export default function Catalog() {
                                 {product.description}
                               </p>
                               <div className="card-price" style={{ marginBottom: '15px' }}>
-                                {stockItems.length > 0 ? `Desde RD$ ${minPrice.toLocaleString()}` : 'Próximamente'}
+                                {stockItems.length > 0 ? `Desde RD$ ${minPrice.toLocaleString('en-US', { minimumFractionDigits: 0 })}` : 'Próximamente'}
                               </div>
                               <button className="btn">
                                 <span className="material-icons">visibility</span>

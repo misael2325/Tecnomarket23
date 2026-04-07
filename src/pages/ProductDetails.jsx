@@ -67,10 +67,10 @@ export default function ProductDetails() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Precio</span>
-                       <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
+                       <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)' }}>RD$ {item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
                     </div>
                     <a
-                      href={`${waBase}?text=${encodeURIComponent(`Hola, me interesa el ${item.specificModel} (Grado ${item.grade}, Batería ${item.battery}%) en RD$ ${item.price.toLocaleString()} 📱`)}`}
+                      href={`${waBase}?text=${encodeURIComponent(`Hola, me interesa el ${item.specificModel} (Grado ${item.grade}, Batería ${item.battery}%) en RD$ ${item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })} 📱`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ background: '#25D366', color: '#fff', borderRadius: '10px', padding: '12px 20px', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap' }}
