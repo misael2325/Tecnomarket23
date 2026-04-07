@@ -403,7 +403,7 @@ const {
         {[
           { key: 'settings', label: '🎭 Textos e Imágenes' },
           { key: 'models',   label: '📂 Familias / Marcas' },
-          { key: 'stock',    label: '📦 Celulares Físicos' },
+          { key: 'stock',    label: '📦 Equipos en Stock' },
           { key: 'offers',   label: '🎉 Campañas' },
           { key: 'users',    label: '👥 Usuarios' },
           { key: 'config',   label: '⚙️ Configuración' },
@@ -732,39 +732,60 @@ const {
           ) : (
             <>
               <button className="btn" onClick={() => { setSelectedProduct(products[0]?.id || ''); setShowStockModal(true); }} style={{ marginBottom: '20px' }}>
-                <span className="material-icons">add</span> Ingresar Celular Físico Exacto
+                <span className="material-icons">add</span> Ingresar Equipo Nuevo
               </button>
-              <div style={{ display: 'grid', gap: '30px' }}>
-                {products.map(product => (
-                  <div key={product.id} className="device-list" style={{ marginTop: 0, background: 'var(--bg-card)', borderRadius: '15px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
-                    <div style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <img src={product.image} style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '8px', background: '#111' }} alt={product.model} />
-                      <div>
-                        <h3 style={{ color: 'white', margin: 0, fontSize: '1.2rem' }}>{product.brand} - {product.model}</h3>
-                        <span className="stock-badge" style={{ marginLeft: 0, background: 'rgba(0, 240, 255, 0.1)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8em' }}>Inventario: {product.stock.length} unds</span>
+              <div style={{ display: 'grid', gap: '40px' }}>
+                {departments.map(dept => {
+                  const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
+                  if (deptProducts.length === 0) return null;
+                  
+                  return (
+                    <div key={dept}>
+                      <h3 style={{ color: 'var(--primary)', marginBottom: '15px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span className="material-icons">
+                          {dept === 'Celulares' ? 'smartphone' : 
+                           dept === 'Laptops & Computadoras' ? 'laptop' :
+                           dept === 'Tablets' ? 'tablet' :
+                           dept === 'Smartwatches' ? 'watch' :
+                           dept === 'TV & Entretenimiento' ? 'tv' : 'category'}
+                        </span>
+                        {dept}
+                      </h3>
+                      <div style={{ display: 'grid', gap: '20px' }}>
+                        {deptProducts.map(product => (
+                          <div key={product.id} className="device-list" style={{ marginTop: 0, background: 'var(--bg-card)', borderRadius: '15px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
+                            <div style={{ padding: '15px 20px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                              <img src={product.image} style={{ width: '35px', height: '35px', objectFit: 'contain', borderRadius: '6px', background: '#111' }} alt={product.model} />
+                              <div>
+                                <h4 style={{ color: 'white', margin: 0, fontSize: '1.1rem' }}>{product.brand} - {product.model}</h4>
+                                <span className="stock-badge" style={{ marginLeft: 0, background: 'rgba(0, 240, 255, 0.1)', color: 'var(--primary)', padding: '1px 6px', borderRadius: '4px', fontSize: '0.75em' }}>Inventory: {product.stock.length} unds</span>
+                              </div>
+                            </div>
+                            {product.stock.length === 0 ? (
+                              <div style={{ padding: '15px', color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.9rem' }}>Sin equipos ingresados aún.</div>
+                            ) : (
+                              product.stock.map(item => (
+                                <div key={item.id} className="device-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '10px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <span style={{ color: 'white', fontWeight: 600, fontSize: '0.95rem' }}>{item.specificModel}</span>
+                                    <span className={`device-grade grade-${item.grade.toLowerCase()}`} style={{ fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', border: '1px solid currentColor', fontSize: '0.75rem' }}>Grado {item.grade}</span>
+                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Bat: {item.battery}%</span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                    <span style={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>RD$ {item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
+                                    <button className="action-btn delete-btn" onClick={() => handleDeleteStock(product.id, item.id)} title="Vendido/Eliminar" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                                      <span className="material-icons" style={{ color: '#ef4444', fontSize: '1.2rem' }}>delete</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    {product.stock.length === 0 ? (
-                      <div style={{ padding: '20px', color: 'var(--text-muted)', textAlign: 'center' }}>Sin teléfonos ingresados.</div>
-                    ) : (
-                      product.stock.map(item => (
-                        <div key={item.id} className="device-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 20px', borderBottom: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '10px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <span style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem' }}>{item.specificModel}</span>
-                            <span className={`device-grade grade-${item.grade.toLowerCase()}`} style={{ fontWeight: 'bold', padding: '4px 8px', borderRadius: '4px', border: '1px solid currentColor' }}>Grado {item.grade}</span>
-                            <span style={{ color: 'var(--text-muted)' }}>Bat: {item.battery}%</span>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            <span style={{ fontWeight: 600, color: 'white' }}>RD$ {item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
-                            <button className="action-btn delete-btn" onClick={() => handleDeleteStock(product.id, item.id)} title="Vendido/Eliminar" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                              <span className="material-icons" style={{ color: '#ef4444' }}>delete</span>
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
@@ -841,7 +862,7 @@ const {
       {showStockModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(5px)' }}>
           <div style={{ background: 'var(--bg-dark)', border: '1px solid var(--glass-border)', borderRadius: '15px', padding: '30px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ color: 'white', marginBottom: '20px' }}>Registrar Teléfono Físico</h2>
+            <h2 style={{ color: 'white', marginBottom: '20px' }}>Registrar Nuevo Equipo</h2>
             <form onSubmit={handleAddStock}>
               <label style={labelStyle}>Marca / Categoría</label>
               <select style={{ ...inputStyle, marginBottom: '15px' }} value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>

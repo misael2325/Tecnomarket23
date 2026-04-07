@@ -5,7 +5,7 @@ import { db } from "../firebase";
 const InventoryContext = createContext();
 
 const defaultSettings = {
-  storeName: 'Sailin Tecno SmartPhone',
+  storeName: 'STS | SAILIN TECNO',
   heroBadge: 'Tecnología a tu Alcance',
   heroTitle: 'Sailin Tecno',
   heroTitleHighlight: 'SmartPhone',
@@ -56,9 +56,11 @@ export function InventoryProvider({ children }) {
     const unsubSettings = onSnapshot(doc(db, "settings", "global"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.storeName === 'MovilTech' || data.storeName === 'Capital Celular' || data.storeName === 'Sailin Tecno SmartPhone' || data.heroTitle === 'La Capital de los') {
-          console.log("Migración de marca: Actualizando a STS | SAILIN TECNO...");
-          setDoc(doc(db, "settings", "global"), defaultSettings, { merge: true });
+        if (data.storeName === 'MovilTech' || data.storeName === 'Capital Celular' || data.storeName === 'Sailin Tecno SmartPhone') {
+          console.log("Migración de marca detectada: Actualizando metadatos base...");
+          // Solo actualizamos lo NO estructural para no borrar departamentos del usuario
+          const { departments, ...restDefault } = defaultSettings;
+          setDoc(doc(db, "settings", "global"), restDefault, { merge: true });
         }
         setSettings(prev => ({ 
           ...defaultSettings, 
