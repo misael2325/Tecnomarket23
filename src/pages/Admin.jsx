@@ -479,6 +479,23 @@ const {
               </div>
             </div>
           </div>
+          
+          {/* CEO / About Us Extra */}
+          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
+            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span className="material-icons">person</span> Información Institucional (CEO)
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div>
+                <label style={labelStyle}>Nombre del CEO</label>
+                <input type="text" name="ceoName" value={localSettings.ceoName || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="SAILIN REYES RODRIGUEZ" />
+              </div>
+              <div>
+                <label style={labelStyle}>Título / Cargo</label>
+                <input type="text" name="ceoTitle" value={localSettings.ceoTitle || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="Ing. Electronico" />
+              </div>
+            </div>
+          </div>
 
           {/* Contact */}
           <div>
@@ -486,7 +503,15 @@ const {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
               <div>
                 <label style={labelStyle}>📧 Correo Electrónico</label>
-                <input type="email" name="contactEmail" value={localSettings.contactEmail || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="ventas@capitalcelular.com" />
+                <input type="email" name="contactEmail" value={localSettings.contactEmail || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="ventas@sts.com.do" />
+              </div>
+              <div>
+                <label style={labelStyle}>📱 Teléfono / WhatsApp</label>
+                <input type="text" name="contactPhone" value={localSettings.contactPhone || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="+1 (829) 424-1236" />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelStyle}>📍 Dirección Física</label>
+                <input type="text" name="contactAddress" value={localSettings.contactAddress || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="Dirección completa..." />
               </div>
               <div style={{ gridColumn: '1 / -1', padding: '15px', background: 'rgba(0,240,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,240,255,0.2)', marginBottom: '10px' }}>
                 <h4 style={{ color: 'var(--primary)', margin: '0 0 10px 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>

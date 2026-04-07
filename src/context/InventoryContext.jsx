@@ -40,6 +40,8 @@ const defaultSettings = {
   ],
   locationLat: '',
   locationLng: '',
+  ceoName: 'SAILIN REYES RODRIGUEZ',
+  ceoTitle: 'Ing. Electronico',
   instagramWidgetCode: '',
   departments: ['Celulares', 'Laptops & Computadoras', 'Tablets', 'Smartwatches', 'TV & Entretenimiento', 'Accesorios', 'Camaras']
 };
@@ -64,9 +66,7 @@ export function InventoryProvider({ children }) {
         }
         setSettings(prev => ({ 
           ...defaultSettings, 
-          ...data,
-          contactAddress: defaultSettings.contactAddress,
-          contactPhone: defaultSettings.contactPhone 
+          ...data
         }));
         if (data.departments) {
           setDepartments(data.departments);

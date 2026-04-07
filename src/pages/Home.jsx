@@ -194,6 +194,17 @@ export default function Home() {
             <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '1.05rem', lineHeight: '1.8' }}>{settings.aboutP1}</p>
             <p style={{ color: 'var(--text-muted)', marginBottom: '30px', fontSize: '1.05rem', lineHeight: '1.8' }}>{settings.aboutP2}</p>
             
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)', marginBottom: '30px' }}>
+              <h4 style={{ color: 'white', marginBottom: '10px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="material-icons" style={{ color: 'var(--primary)' }}>account_circle</span>
+                {settings.ceoName}
+              </h4>
+              <p style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '15px' }}>{settings.ceoTitle}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                "Para más información o consultas directas sobre nuestros equipos, pueden contactar conmigo. Estamos para servirles con la mejor tecnología."
+              </p>
+            </div>
+
             <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '15px 35px', background: '#25D366', border: 'none', display: 'flex', alignItems: 'center', gap: '10px', width: 'fit-content' }}>
               <WhatsAppIcon />
               Hablar con un Experto
