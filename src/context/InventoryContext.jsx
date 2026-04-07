@@ -40,8 +40,6 @@ const defaultSettings = {
   ],
   locationLat: '',
   locationLng: '',
-  ceoName: 'SAILIN REYES RODRIGUEZ',
-  ceoTitle: 'Ing. Electronico',
   instagramWidgetCode: '',
   departments: ['Celulares', 'Laptops & Computadoras', 'Tablets', 'Smartwatches', 'TV & Entretenimiento', 'Accesorios', 'Camaras']
 };

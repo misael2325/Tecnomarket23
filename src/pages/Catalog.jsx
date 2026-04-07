@@ -48,58 +48,53 @@ export default function Catalog() {
 
   return (
     <>
-      <nav>
+      <nav className="glass-effect">
         <Link to="/" className="nav-brand">
-          <span className="material-icons" style={{ color: 'var(--primary)' }}>smartphone</span>
-          {settings.storeName}
+          {settings.storeName || 'Sailin Tecno'}
         </Link>
         <div className="nav-links">
           <Link to="/">Inicio</Link>
           <Link to="/catalog" className="active">Catálogo</Link>
-          <a href="#contacto">Contacto</a>
         </div>
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-          <button onClick={() => logout()} className="btn btn-outline" style={{ padding: '6px 15px', fontSize: '0.85rem' }}>
-            Cerrar Sesión
+        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+          <button onClick={() => logout()} className="btn btn-outline" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
+            Salir
           </button>
-          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '8px 20px', background: '#25D366', border: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <WhatsAppIcon />
-            Chat
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '10px 24px', background: 'var(--primary)', color: 'var(--on-primary)' }}>
+            Chat Directo
           </a>
         </div>
       </nav>
 
-      <div style={{ 
+      {/* STICKY FILTER BAR */}
+      <div className="glass-effect" style={{ 
         position: 'sticky', 
-        top: '70px', 
+        top: '72px', 
         zIndex: 100, 
-        background: 'rgba(10, 10, 12, 0.95)', 
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid var(--glass-border)',
-        padding: '15px 5%',
+        padding: '24px 8%',
         display: 'flex',
         gap: '12px',
         overflowX: 'auto',
         scrollbarWidth: 'none',
-        WebkitOverflowScrolling: 'touch'
+        justifyContent: 'center'
       }}>
         <button 
           onClick={() => setSelectedDept('Todos')}
           style={{ 
             whiteSpace: 'nowrap', 
-            color: selectedDept === 'Todos' ? '#000' : 'white', 
-            border: 'none',
-            padding: '8px 20px', 
-            borderRadius: '25px', 
-            background: selectedDept === 'Todos' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-            fontSize: '0.85rem',
+            padding: '12px 28px', 
+            fontSize: '0.9rem',
+            fontFamily: 'var(--font-headline)',
             fontWeight: 700,
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            boxShadow: selectedDept === 'Todos' ? '0 0 15px var(--primary-glow)' : 'none'
+            background: selectedDept === 'Todos' ? 'var(--primary)' : 'var(--surface-container-high)',
+            color: selectedDept === 'Todos' ? 'var(--on-primary)' : 'var(--on-surface-variant)',
+            border: 'none',
+            borderRadius: '100px',
+            transition: 'var(--transition)',
+            cursor: 'pointer'
           }}
         >
-          Todos
+          {selectedDept === 'Todos' && '✨'} Todos
         </button>
         {activeDepts.map(dept => {
           const isActive = selectedDept === dept;
@@ -109,38 +104,39 @@ export default function Catalog() {
               onClick={() => setSelectedDept(dept)}
               style={{ 
                 whiteSpace: 'nowrap', 
-                color: isActive ? '#000' : 'white', 
-                border: 'none',
-                padding: '8px 20px', 
-                borderRadius: '25px', 
-                background: isActive ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                fontSize: '0.85rem',
+                padding: '12px 28px', 
+                fontSize: '0.9rem',
+                fontFamily: 'var(--font-headline)',
                 fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                boxShadow: isActive ? '0 0 15px var(--primary-glow)' : 'none'
+                background: isActive ? 'var(--primary)' : 'var(--surface-container-high)',
+                color: isActive ? 'var(--on-primary)' : 'var(--on-surface-variant)',
+                border: 'none',
+                borderRadius: '100px',
+                transition: 'var(--transition)',
+                cursor: 'pointer'
               }}
             >
-              {dept}
+              {isActive && '📍'} {dept}
             </button>
           );
         })}
       </div>
 
-      <section className="section" style={{ paddingTop: '50px', minHeight: '80vh' }}>
+      <section className="section" style={{ minHeight: '80vh' }}>
         <div className="section-title">
-          <h2>Catálogo Completo</h2>
-          <p>Explora nuestras secciones exclusivas y encuentra el equipo ideal para ti.</p>
+          <span className="badge">Catálogo Certificado</span>
+          <h2>Selección Curada</h2>
+          <p>Dispositivos de alto rendimiento, verificados y listos para definir tu experiencia digital.</p>
         </div>
 
         {products.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--text-muted)' }}>
-            <span className="material-icons" style={{ fontSize: '4rem', display: 'block', marginBottom: '15px' }}>inventory_2</span>
-            <h3 style={{ color: 'white', marginBottom: '10px' }}>Catálogo vacío</h3>
-            <p>Vuelve pronto para ver nuestras categorías disponibles.</p>
+          <div style={{ textAlign: 'center', padding: '120px 24px', background: 'var(--surface-container-low)', borderRadius: 'var(--xl-radius)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '5rem', color: 'var(--surface-container-highest)', marginBottom: '24px' }}>inventory_2</span>
+            <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', marginBottom: '12px' }}>Sin artículos disponibles</h3>
+            <p style={{ color: 'var(--on-surface-variant)' }}>Estamos preparando nuevas unidades para ti.</p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '50px', maxWidth: '1200px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '80px', maxWidth: '1600px', margin: '0 auto' }}>
             {activeDepts
               .filter(d => selectedDept === 'Todos' || d === selectedDept)
               .map(dept => {
@@ -148,28 +144,22 @@ export default function Catalog() {
                 if (deptProducts.length === 0) return null;
 
                 return (
-                  <div key={dept} style={{ animation: 'fadeIn 0.5s ease' }}>
-                    <h3 style={{ 
-                      color: 'white', 
-                      fontSize: '1.6rem', 
-                      marginBottom: '20px', 
-                      paddingLeft: '5%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px'
-                    }}>
-                      <span className="material-icons" style={{ color: 'var(--primary)', fontSize: '1.8rem' }}>
-                        {dept === 'Celulares' ? 'smartphone' : 
-                         dept === 'Laptops & Computadoras' ? 'laptop' :
-                         dept === 'Tablets' ? 'tablet' :
-                         dept === 'Smartwatches' ? 'watch' :
-                         dept === 'TV & Entretenimiento' ? 'tv' : 'settings_input_component'}
-                      </span>
-                      {dept}
-                      <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 'normal' }}>({deptProducts.length})</span>
-                    </h3>
+                  <div key={dept} style={{ animation: 'fadeUp 0.8s ease backwards' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '40px' }}>
+                      <h3 style={{ 
+                        fontFamily: 'var(--font-headline)',
+                        fontSize: '2rem', 
+                        fontWeight: 800,
+                        letterSpacing: '-1.5px',
+                        margin: 0
+                      }}>
+                        {dept}
+                      </h3>
+                      <div style={{ height: '1px', flex: 1, background: 'var(--outline-variant)' }}></div>
+                      <span className="stock-badge">{deptProducts.length} Equipos</span>
+                    </div>
                     
-                    <div className="productos" style={{ padding: '0 5%' }}>
+                    <div className="productos">
                       {deptProducts.map(product => {
                         const stockItems = product.stock || [];
                         const minPrice = stockItems.length > 0
@@ -182,22 +172,16 @@ export default function Catalog() {
                               <img src={product.image} alt={product.model} />
                             </div>
                             <div className="card-info">
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                                <h3 className="card-title" style={{ margin: 0 }}>{product.model}</h3>
-                                {stockItems.length > 0 && (
-                                  <span className="stock-badge" style={{ marginLeft: 0 }}>{stockItems.length} uds</span>
-                                )}
-                              </div>
-                              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '15px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                              <h3 className="card-title">{product.model}</h3>
+                              <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.95rem', marginBottom: '24px', flex: 1 }}>
                                 {product.description}
                               </p>
-                              <div className="card-price" style={{ marginBottom: '15px' }}>
-                                {stockItems.length > 0 ? `Desde RD$ ${minPrice.toLocaleString('en-US', { minimumFractionDigits: 0 })}` : 'Próximamente'}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div className="card-price">
+                                  {stockItems.length > 0 ? `RD$ ${minPrice.toLocaleString()}` : 'Agotado'}
+                                </div>
+                                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>arrow_forward</span>
                               </div>
-                              <button className="btn">
-                                <span className="material-icons">visibility</span>
-                                Ver Disponibles
-                              </button>
                             </div>
                           </Link>
                         );
@@ -210,48 +194,40 @@ export default function Catalog() {
         )}
       </section>
 
-      <footer id="contacto">
+      {/* FOOTER - MATCH HOME */}
+      <footer>
         <div className="footer-content">
-          <div style={{ textAlign: 'left' }}>
-            <div className="nav-brand" style={{ marginBottom: '10px' }}>
-              <span className="material-icons">smartphone</span>
+          <div>
+            <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2.5rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-2px', background: 'linear-gradient(to right, var(--primary), var(--primary-container))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               {settings.storeName}
+            </h2>
+            <p style={{ color: 'var(--on-surface-variant)', fontSize: '1.1rem', maxWidth: '400px' }}>
+              {settings.footerDesc}
+            </p>
+          </div>
+          <div>
+            <h4 className="form-label" style={{ marginBottom: '24px' }}>Ubicación</h4>
+            <p style={{ fontSize: '0.95rem', marginBottom: '16px' }}>{settings.contactAddress}</p>
+            <p style={{ color: 'var(--primary)', fontWeight: 700 }}>{settings.contactPhone}</p>
+          </div>
+          <div>
+            <h4 className="form-label" style={{ marginBottom: '24px' }}>Redes Sociales</h4>
+            <div className="social-links" style={{ gap: '16px' }}>
+              {settings.socialFacebook && (
+                <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer">
+                  <span className="material-symbols-outlined">facebook</span>
+                </a>
+              )}
+              {settings.socialInstagram && (
+                <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer">
+                  <span className="material-symbols-outlined">camera_alt</span>
+                </a>
+              )}
             </div>
-            <p style={{ color: 'var(--text-muted)', maxWidth: '300px' }}>{settings.footerDesc}</p>
-          </div>
-          <div style={{ textAlign: 'left' }}>
-            <h4 style={{ color: 'white', marginBottom: '15px', fontSize: '1.1rem' }}>Contacto Directo</h4>
-            <a 
-              href={settings.locationLat && settings.locationLng 
-                ? `https://www.google.com/maps?q=${settings.locationLat},${settings.locationLng}`
-                : `https://www.google.com/maps/search/${encodeURIComponent(settings.contactAddress || '')}`} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{ color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}
-              className="hover-primary"
-            >
-              <span className="material-icons" style={{ fontSize: '1.2rem' }}>location_on</span>
-              {settings.contactAddress}
-            </a>
-            <a href={waLink} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-              <span className="material-icons" style={{ fontSize: '1.2rem' }}>phone</span>
-              {settings.contactPhone}
-            </a>
-            {settings.contactEmail && (
-              <a href={`mailto:${settings.contactEmail}`} style={{ color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-                <span className="material-icons" style={{ fontSize: '1.2rem' }}>mail</span>
-                {settings.contactEmail}
-              </a>
-            )}
-          </div>
-          <div className="social-links">
-            {settings.socialFacebook && <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer"><span className="material-icons">facebook</span></a>}
-            {settings.socialInstagram && <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer"><span className="material-icons">camera_alt</span></a>}
-            {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}><span className="material-icons">mail</span></a>}
           </div>
         </div>
-        <div className="copyright">
-          <p>© 2026 {settings.storeName}. Todos los derechos reservados.</p>
+        <div style={{ borderTop: '1px solid var(--outline-variant)', paddingTop: '40px', textAlign: 'center', color: 'var(--on-surface-variant)', fontSize: '0.85rem' }}>
+          © 2026 {settings.storeName}. High-End Editorial Tech.
         </div>
       </footer>
     </>

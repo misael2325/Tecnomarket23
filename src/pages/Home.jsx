@@ -29,343 +29,181 @@ export default function Home() {
 
   return (
     <>
-      <nav>
+      <nav className="glass-effect">
         <Link to="/" className="nav-brand">
-          <span className="material-icons">smartphone</span>
-          {settings.storeName}
+          {settings.storeName || 'Sailin Tecno'}
         </Link>
         <div className="nav-links">
-          <a href="#" className="active">Inicio</a>
-          <a href="#nosotros">Acerca de</a>
-          {isAdmin && <Link to="/admin" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Panel CMS</Link>}
+          <Link to="/" className="active">Inicio</Link>
+          <Link to="/catalog">Catálogo</Link>
+          {isAdmin && <Link to="/admin" style={{ color: 'var(--primary)' }}>Admin</Link>}
         </div>
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
           {currentUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                <span style={{ color: 'white', fontSize: '0.85rem', fontWeight: 600 }}>{currentUser.email}</span>
-              </div>
-              <button onClick={() => logout()} className="btn btn-outline" style={{ padding: '6px 15px', fontSize: '0.85rem', border: '1px solid rgba(255,255,255,0.2)' }}>
-                Cerrar Sesión
-              </button>
-            </div>
+            <button onClick={() => logout()} className="btn btn-outline" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
+              Cerrar Sesión
+            </button>
           ) : (
-            <Link to="/login" className="btn btn-outline" style={{ padding: '6px 20px', fontSize: '0.85rem' }}>
-              Iniciar Sesión
+            <Link to="/login" className="btn btn-outline" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
+              Entrar
             </Link>
           )}
-          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '8px 20px', background: '#25D366', border: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <WhatsAppIcon />
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '10px 24px', background: 'var(--primary)', color: 'var(--on-primary)' }}>
             Contáctanos
           </a>
         </div>
       </nav>
 
-      {/* ACTIVE CAMPAIGN BANNER */}
-      {primaryOffer && (
-        <div style={{
-          background: primaryOffer.bgColor || '#0f172a',
-          backgroundImage: primaryOffer.image ? `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${primaryOffer.image})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          borderBottom: `3px solid ${primaryOffer.accentColor || '#00f0ff'}`,
-          padding: '20px 5%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '20px',
-          flexWrap: 'wrap',
-          textAlign: 'center',
-          animation: 'fadeIn 0.5s ease',
-        }}>
-          <span style={{ fontSize: '2.5rem', filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))' }}>{primaryOffer.emoji}</span>
-          <div style={{ textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}>
-            <span style={{ color: 'white', fontWeight: 900, fontSize: '1.3rem', marginRight: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              {primaryOffer.name}
-            </span>
-            {primaryOffer.discount > 0 && (
-              <span style={{
-                background: primaryOffer.accentColor || '#00f0ff',
-                color: '#000',
-                fontWeight: 800,
-                padding: '6px 16px',
-                borderRadius: '12px',
-                fontSize: '1.1rem',
-                boxShadow: `0 0 20px ${primaryOffer.accentColor || '#00f0ff'}88`,
-              }}>
-                {primaryOffer.discount}% OFF
-              </span>
-            )}
-            {primaryOffer.description && (
-              <p style={{ color: 'rgba(255,255,255,0.9)', margin: '8px 0 0', fontSize: '1rem', fontWeight: 500 }}>
-                {primaryOffer.description}
-              </p>
-            )}
-          </div>
-          {primaryOffer.endDate && (
-            <div style={{ background: 'rgba(0,0,0,0.4)', padding: '5px 15px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.2)' }}>
-              <span style={{ color: 'white', fontSize: '0.85rem', fontWeight: 600 }}>
-                ⏳ Termina: {primaryOffer.endDate}
-              </span>
-            </div>
+      {/* HERO SECTION - EDITORIAL STYLE */}
+      <header className="hero">
+        <div className="absolute inset-0 z-0">
+          {settings.heroImage && (
+            <img 
+              src={settings.heroImage} 
+              alt="Hero" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25, filter: 'grayscale(1) contrast(1.1)' }} 
+            />
           )}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, var(--background) 40%, transparent 100%)' }}></div>
         </div>
-      )}
 
-      <header className="hero" style={{ 
-        backgroundImage: settings.heroImage ? `linear-gradient(to bottom, rgba(10,10,12,0.6) 0%, rgba(10,10,12,1) 100%), url(${settings.heroImage})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}>
-        <div className="hero-content">
-          <div className="badge">{settings.heroBadge}</div>
-          <h1 style={{ background: 'none', WebkitTextFillColor: 'initial', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', marginBottom: '15px' }}>
-            <span style={{ color: '#ff3131', fontSize: '1.2em', fontWeight: 950, textTransform: 'uppercase', letterSpacing: '1px' }}>{settings.heroTitle}</span>
-            <span style={{ color: '#3b82f6', fontSize: '0.9em', fontWeight: 800, letterSpacing: '4px' }}>{settings.heroTitleHighlight}</span>
+        <div className="hero-content" style={{ zIndex: 10, maxWidth: '1000px' }}>
+          <span className="badge" style={{ marginBottom: '16px' }}>{settings.heroBadge || 'Digital Curator Edition'}</span>
+          <h1 style={{ marginBottom: '24px' }}>
+            {settings.heroTitle}
+            <span>{settings.heroTitleHighlight}</span>
           </h1>
-          <p>{settings.heroDescription}</p>
-          <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <p style={{ fontSize: '1.4rem', fontWeight: 500, color: 'var(--on-surface-variant)', marginBottom: '56px' }}>
+            {settings.heroDescription}
+          </p>
+          <div style={{ display: 'flex', gap: '24px' }}>
             <Link to="/catalog" className="btn">
-              Ver Catálogo
-              <span className="material-icons">arrow_forward</span>
+              Explorar Colección
+              <span className="material-symbols-outlined" style={{ fontSize: '1.4rem' }}>north_east</span>
             </Link>
-            {activeOffers.length > 0 && (
-              <Link to="/catalog" className="btn btn-outline" style={{ borderColor: primaryOffer.accentColor || 'var(--primary)', color: primaryOffer.accentColor || 'var(--primary)', background: 'rgba(0,0,0,0.3)' }}>
-                {primaryOffer.emoji} Ver Ofertas
-              </Link>
+            {primaryOffer && (
+              <a href="#ofertas" className="btn btn-outline">
+                Ver {primaryOffer.name}
+              </a>
             )}
           </div>
         </div>
       </header>
 
-      {/* ACTIVE OFFERS SECTION */}
-      {activeOffers.length > 0 && (
-        <section className="section" id="ofertas" style={{ paddingTop: '80px', paddingBottom: '60px' }}>
-          <div className="section-title">
-            <h2>🎉 Campañas Activas</h2>
-            <p>Descubre nuestras promociones especiales vigentes ahora mismo.</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '25px', maxWidth: '1200px', margin: '0 auto', padding: '0 5%' }}>
-            {activeOffers.map(offer => (
-              <div key={offer.id} style={{
-                background: offer.bgColor || 'var(--bg-card)',
-                backgroundImage: offer.image ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${offer.image})` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                border: `2px solid ${offer.accentColor || 'var(--primary)'}`,
-                borderRadius: '24px',
-                padding: '40px 30px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                gap: '15px',
-                boxShadow: `0 20px 40px ${offer.accentColor}22`,
-                transition: 'transform 0.3s',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                <span style={{ fontSize: '4rem', filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))' }}>{offer.emoji}</span>
-                <h3 style={{ color: 'white', fontSize: '1.8rem', margin: 0, fontWeight: 900 }}>{offer.name}</h3>
-                {offer.discount > 0 && (
-                  <div style={{ background: offer.accentColor || '#00f0ff', color: '#000', fontWeight: 900, fontSize: '2.5rem', padding: '10px 30px', borderRadius: '15px', boxShadow: `0 0 30px ${offer.accentColor}66` }}>
-                    {offer.discount}% OFF
-                  </div>
-                )}
-                {offer.description && <p style={{ color: 'white', margin: 0, fontSize: '1.1rem', fontWeight: 500 }}>{offer.description}</p>}
-                {offer.endDate && <p style={{ color: 'rgba(255,255,255,0.7)', margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>📅 Válido hasta {offer.endDate}</p>}
-                <Link to="/catalog" className="btn" style={{ marginTop: '15px', background: offer.accentColor || 'var(--primary)', color: '#000', border: 'none', width: '100%', fontWeight: 800 }}>
-                  Aprovechar Oferta <span className="material-icons">local_fire_department</span>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {/* BENTO GRID - WHY CHOOSE US */}
+      <section className="section" style={{ background: 'var(--surface-container-low)' }}>
+        <div className="section-title">
+          <span className="badge">Curated Experience</span>
+          <h2>La Diferencia Sailin</h2>
+          <p>Elevamos el estándar de lo que esperas de un smartphone de alta gama.</p>
+        </div>
 
-      {/* ABOUT SECTION */}
-      <section className="section" id="nosotros">
-        <div className="about-grid">
-          <div className="about-text">
-            <h2>{settings.aboutTitle}</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '1.05rem', lineHeight: '1.8' }}>{settings.aboutP1}</p>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '30px', fontSize: '1.05rem', lineHeight: '1.8' }}>{settings.aboutP2}</p>
-            
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)', marginBottom: '30px' }}>
-              <h4 style={{ color: 'white', marginBottom: '10px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className="material-icons" style={{ color: 'var(--primary)' }}>account_circle</span>
-                {settings.ceoName}
-              </h4>
-              <p style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '15px' }}>{settings.ceoTitle}</p>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontStyle: 'italic' }}>
-                "Para más información o consultas directas sobre nuestros equipos, pueden contactar conmigo. Estamos para servirles con la mejor tecnología."
-              </p>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(3, 1fr)', 
+          gridAutoRows: 'minmax(200px, auto)',
+          gap: '24px', 
+          maxWidth: '1600px', 
+          margin: '0 auto' 
+        }}>
+          {settings.whyUsItems?.map((item, idx) => (
+            <div key={idx} style={{
+              gridColumn: idx === 0 ? 'span 2' : 'span 1',
+              gridRow: idx === 0 ? 'span 2' : 'span 1',
+              background: idx % 2 === 0 ? 'var(--surface-container-high)' : 'var(--surface-container)',
+              borderRadius: 'var(--xl-radius)',
+              padding: idx === 0 ? '64px' : '40px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-end',
+              transition: 'var(--transition)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <span className="material-symbols-outlined" style={{ 
+                fontSize: idx === 0 ? '5rem' : '3.5rem', 
+                color: idx % 2 === 0 ? 'var(--primary)' : 'var(--secondary)',
+                marginBottom: '24px',
+                opacity: 0.8
+              }}>
+                {idx === 0 ? 'verified_user' : idx === 1 ? 'payments' : 'auto_graph'}
+              </span>
+              <h3 style={{ 
+                fontFamily: 'var(--font-headline)', 
+                fontSize: idx === 0 ? '2.5rem' : '1.5rem', 
+                fontWeight: 800, 
+                marginBottom: '16px',
+                letterSpacing: '-1px'
+              }}>{item.title}</h3>
+              <p style={{ color: 'var(--on-surface-variant)', fontSize: idx === 0 ? '1.2rem' : '1rem' }}>{item.desc}</p>
             </div>
-
-            <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '15px 35px', background: '#25D366', border: 'none', display: 'flex', alignItems: 'center', gap: '10px', width: 'fit-content' }}>
-              <WhatsAppIcon />
-              Hablar con un Experto
-            </a>
-            <div style={{ marginTop: '30px', display: 'flex', gap: '20px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <span style={{ fontSize: '2rem', fontWeight: 800, color: 'white' }}>{settings.stat1Value}</span>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{settings.stat1Label}</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <span style={{ fontSize: '2rem', fontWeight: 800, color: 'white' }}>{settings.stat2Value}</span>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{settings.stat2Label}</span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <img src={settings.aboutImage} alt="Interior Tienda" style={{ width: '100%', borderRadius: '20px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', border: '1px solid var(--glass-border)' }} />
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* WHY US SECTION */}
-      {settings.whyUsItems && settings.whyUsItems.length > 0 && (
-        <section className="section" style={{ paddingTop: 0 }}>
-          <div className="section-title">
-            <h2>¿Por qué elegirnos?</h2>
-            <p>Las razones por las que miles de clientes confían en nosotros.</p>
+      {/* EDITORIAL INSTAGRAM GRID */}
+      <section className="section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '80px' }}>
+          <div className="section-title" style={{ margin: 0 }}>
+            <span className="badge">Social Feed</span>
+            <h2>Nuestra Comunidad</h2>
           </div>
+          <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ borderRadius: '100px', padding: '12px 24px' }}>
+            @sailintecno
+          </a>
+        </div>
 
-          {/* General section image (optional) */}
-          {settings.whyUsSectionImage && (
-            <div style={{ maxWidth: '1200px', margin: '0 auto 30px', padding: '0 5%' }}>
-              <img
-                src={settings.whyUsSectionImage}
-                alt="¿Por qué elegirnos?"
-                style={{ width: '100%', maxHeight: '320px', objectFit: 'cover', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}
-                onError={e => e.target.style.display='none'}
-              />
-            </div>
-          )}
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
-            gap: '20px',
-            maxWidth: '1200px',
-            margin: '0 auto',
-            padding: '0 5%',
-          }}>
-            {settings.whyUsItems.map((item, idx) => (
-              <div key={item.id || idx} style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--glass-border)',
-                borderRadius: '16px',
-                padding: '28px 24px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                transition: 'transform 0.3s, border-color 0.3s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.borderColor = 'var(--primary)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
-              >
-                <span style={{ fontSize: '2.5rem' }}>{item.icon}</span>
-                <h3 style={{ color: 'white', margin: 0, fontSize: '1.1rem' }}>{item.title}</h3>
-                <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem', lineHeight: 1.6 }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* INSTAGRAM SECTION */}
-      {settings.socialInstagram && settings.instagramPhotos && settings.instagramPhotos.length > 0 && (
-        <section className="section" style={{ background: 'rgba(255,255,255,0.02)', padding: '80px 5%' }}>
-          <div className="section-title">
-            <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
-              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#E1306C' }}>camera_alt</span>
-              Síguenos en Instagram
-            </h2>
-            <p>Mira nuestras novedades y promociones exclusivas en redes sociales.</p>
-          </div>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-            gap: '15px', 
-            maxWidth: '1000px', 
-            margin: '0 auto 40px' 
-          }}>
-            {settings.instagramPhotos.map((photo, idx) => (
-              <div key={idx} style={{ 
-                aspectRatio: '1/1', 
-                overflow: 'hidden', 
-                borderRadius: '12px', 
-                border: '1px solid var(--glass-border)',
-                background: '#111'
-              }}>
-                <img src={photo} alt={`Instagram ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s' }} 
-                  onMouseEnter={e => e.target.style.transform = 'scale(1.1)'} 
-                  onMouseLeave={e => e.target.style.transform = 'scale(1)'} 
-                />
-              </div>
-            ))}
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" className="btn" style={{ 
-              background: 'linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)', 
-              border: 'none',
-              padding: '12px 30px',
-              fontWeight: 800
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+          {settings.instagramPhotos?.map((photo, idx) => (
+            <div key={idx} style={{ 
+              aspectRatio: '1', 
+              borderRadius: idx % 2 === 0 ? 'var(--xl-radius)' : '0', 
+              overflow: 'hidden',
+              transform: idx % 2 !== 0 ? 'translateY(40px)' : 'none'
             }}>
-              Ir a Instagram
-            </a>
-          </div>
-        </section>
-      )}
-
-      <footer id="contacto">
-        <div className="footer-content">
-          <div style={{ textAlign: 'left' }}>
-            <div className="nav-brand" style={{ marginBottom: '10px' }}>
-              <span className="material-icons">smartphone</span>
-              {settings.storeName}
+              <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'var(--transition)' }} />
             </div>
-            <p style={{ color: 'var(--text-muted)', maxWidth: '300px' }}>
+          ))}
+        </div>
+      </section>
+
+      {/* FOOTER - EDITORIAL LAYOUT */}
+      <footer>
+        <div className="footer-content">
+          <div>
+            <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-1.5px', background: 'linear-gradient(to right, var(--primary), var(--primary-container))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              {settings.storeName}
+            </h2>
+            <p style={{ color: 'var(--on-surface-variant)', fontSize: '1.1rem', maxWidth: '400px' }}>
               {settings.footerDesc}
             </p>
           </div>
-          <div style={{ textAlign: 'left' }}>
-            <h4 style={{ color: 'white', marginBottom: '15px', fontSize: '1.1rem' }}>Contacto Directo</h4>
-            <a 
-              href={settings.locationLat && settings.locationLng 
-                ? `https://www.google.com/maps?q=${settings.locationLat},${settings.locationLng}`
-                : `https://www.google.com/maps/search/${encodeURIComponent(settings.contactAddress || '')}`} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              style={{ color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}
-              className="hover-primary"
-            >
-              <span className="material-icons" style={{ fontSize: '1.2rem' }}>location_on</span>
-              {settings.contactAddress}
-            </a>
-            <a href={waLink} target="_blank" rel="noopener noreferrer" style={{ color: '#25D366', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', background: 'rgba(37, 211, 102, 0.1)', padding: '10px 20px', borderRadius: '10px', border: '1px solid rgba(37, 211, 102, 0.3)', width: 'fit-content' }}>
-              <WhatsAppIcon />
-              {settings.contactPhone}
-            </a>
-            {settings.contactEmail && (
-              <a href={`mailto:${settings.contactEmail}`} style={{ color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-                <span className="material-icons" style={{ fontSize: '1.2rem' }}>mail</span>
-                {settings.contactEmail}
-              </a>
-            )}
+          <div>
+            <h4 className="form-label" style={{ marginBottom: '24px' }}>Contacto</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <p style={{ fontSize: '0.95rem' }}>{settings.contactAddress}</p>
+              <p style={{ color: 'var(--primary)', fontWeight: 700 }}>{settings.contactPhone}</p>
+              <p style={{ color: 'var(--on-surface-variant)' }}>{settings.contactEmail}</p>
+            </div>
           </div>
-          <div className="social-links">
-            {settings.socialFacebook && <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer"><span className="material-icons">facebook</span></a>}
-            {settings.socialInstagram && <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer"><span className="material-icons">camera_alt</span></a>}
-            {settings.contactEmail && <a href={`mailto:${settings.contactEmail}`}><span className="material-icons">mail</span></a>}
+          <div>
+            <h4 className="form-label" style={{ marginBottom: '24px' }}>Social</h4>
+            <div className="social-links">
+              {settings.socialFacebook && (
+                <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer">
+                  <span className="material-symbols-outlined">facebook</span>
+                </a>
+              )}
+              {settings.socialInstagram && (
+                <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer">
+                  <span className="material-symbols-outlined">camera_alt</span>
+                </a>
+              )}
+            </div>
           </div>
         </div>
-        <div className="copyright">
-          <p>© 2026 {settings.storeName}. Todos los derechos reservados.</p>
+        <div style={{ borderTop: '1px solid var(--outline-variant)', paddingTop: '40px', textAlign: 'center', color: 'var(--on-surface-variant)', fontSize: '0.85rem' }}>
+          © 2026 {settings.storeName}. Digital Curator Edition.
         </div>
       </footer>
     </>

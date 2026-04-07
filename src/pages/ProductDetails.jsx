@@ -29,68 +29,125 @@ export default function ProductDetails() {
 
   return (
     <>
-      <nav>
+      <nav className="glass-effect">
         <Link to="/" className="nav-brand">
-          <span className="material-icons">smartphone</span>
-          {settings.storeName}
+          {settings.storeName || 'Sailin Tecno'}
         </Link>
         <div className="nav-links">
           <Link to="/">Inicio</Link>
-          <Link to="/catalog" className="active">Catálogo</Link>
+          <Link to="/catalog">Catálogo</Link>
         </div>
       </nav>
 
-      <section className="section" style={{ paddingTop: '120px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', gap: '50px', flexWrap: 'wrap', marginBottom: '50px' }}>
-          <div style={{ flex: '1', minWidth: '300px', background: '#111', borderRadius: '20px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={product.image} alt={product.model} style={{ width: '100%', maxWidth: '500px', objectFit: 'contain' }} />
-          </div>
-          <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div className="badge" style={{alignSelf: 'flex-start'}}>{product.brand}</div>
-            <h1 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '20px', lineHeight: 1.1, background: 'linear-gradient(90deg, #fff, #8892b0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{product.model}</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '30px' }}>{product.description}</p>
-            <h3 style={{ color: 'var(--primary)', fontSize: '2rem', marginBottom: '10px' }}>Inventario Físico Disponible</h3>
-            <p style={{ color: 'var(--text-muted)' }}>Explora los teléfonos exactos que tenemos en la tienda hoy.</p>
-          </div>
-        </div>
+      <main style={{ paddingTop: '100px', minHeight: '100vh', background: 'var(--background)' }}>
+        {/* EDITORIAL PRODUCT HERO */}
+        <section className="section" style={{ paddingBottom: '40px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1.2fr) 0.8fr', gap: '80px', alignItems: 'center' }}>
+            
+            {/* Spec-Overlay Image Container */}
+            <div style={{ position: 'relative', borderRadius: 'var(--xl-radius)', overflow: 'hidden', background: 'var(--surface-container)', padding: '60px', display: 'flex', justifyContent: 'center' }}>
+              <img src={product.image} alt={product.model} style={{ width: '100%', height: 'auto', maxHeight: '500px', objectFit: 'contain', filter: 'drop-shadow(0 20px 50px rgba(0,0,0,0.5))' }} />
+              
+              {/* Overlay Spec Panel */}
+              <div className="glass-effect" style={{ 
+                position: 'absolute', 
+                bottom: '40px', 
+                right: '40px', 
+                padding: '24px 32px', 
+                borderRadius: 'var(--lg-radius)',
+                border: '1px solid var(--outline-variant)',
+                textAlign: 'left'
+              }}>
+                <span className="form-label" style={{ color: 'var(--primary)', marginBottom: '8px' }}>Categoría</span>
+                <h4 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', fontWeight: 800 }}>{product.department}</h4>
+              </div>
+            </div>
 
-        <div>
-          {product.stock.length > 0 ? (
-            <div className="device-list" style={{background: 'var(--bg-card)', borderRadius: '20px', border: '1px solid var(--glass-border)', overflow: 'hidden'}}>
-              {product.stock.map(item => (
-                <div key={item.id} className="device-item" style={{display: 'flex', padding: '25px', borderBottom: '1px solid var(--glass-border)', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px'}}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                    <span style={{color: 'white', fontWeight: 800, fontSize: '1.3rem'}}>{item.specificModel}</span>
-                    <span className={`device-grade grade-${item.grade.toLowerCase()}`} style={{fontWeight: 700, padding: '4px 10px', borderRadius: '8px', border: '1px solid currentColor'}}>Grado {item.grade}</span>
-                    <span style={{ color: 'var(--text-muted)', fontWeight: 600, borderLeft: '1px solid var(--glass-border)', paddingLeft: '15px' }}>Batería {item.battery}%</span>
+            {/* Editorial Content */}
+            <div>
+              <span className="badge" style={{ background: 'var(--surface-container-highest)', color: 'var(--on-surface)' }}>{product.brand} Official</span>
+              <h1 style={{ 
+                fontFamily: 'var(--font-headline)', 
+                fontSize: 'clamp(3rem, 5vw, 6rem)', 
+                fontWeight: 800, 
+                lineHeight: 0.9, 
+                letterSpacing: '-4px', 
+                marginBottom: '32px' 
+              }}>
+                {product.model}
+              </h1>
+              <p style={{ fontSize: '1.25rem', color: 'var(--on-surface-variant)', lineHeight: 1.7, marginBottom: '48px' }}>
+                {product.description}
+              </p>
+              
+              <div style={{ background: 'var(--surface-container-low)', padding: '32px', borderRadius: 'var(--xl-radius)' }}>
+                <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px' }}>Inventario Certificado</h3>
+                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem' }}>Disponibilidad inmediata con garantía Sailin.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* STOCK LIST - TONAL LAYERING */}
+        <section className="section" style={{ paddingTop: '40px' }}>
+          <div className="section-title">
+            <h2 style={{ fontSize: '2.5rem' }}>Unidades Disponibles</h2>
+          </div>
+
+          <div className="device-list">
+            {product.stock.length > 0 ? (
+              product.stock.map(item => (
+                <div key={item.id} className="device-item">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '48px' }}>
+                    <div>
+                      <span className="form-label">Modelo</span>
+                      <h4 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.4rem', fontWeight: 800 }}>{item.specificModel}</h4>
+                    </div>
+                    {product.department === 'Celulares' && (
+                      <div>
+                        <span className="form-label">Salud de Batería</span>
+                        <h4 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--tertiary)' }}>{item.battery}%</h4>
+                      </div>
+                    )}
+                    <div>
+                      <span className="form-label">Estado</span>
+                      <div className={`device-grade grade-${item.grade.replace(/\s+/g, '-').toLowerCase()}`} 
+                           style={{ background: 'var(--surface-container-highest)', color: 'var(--on-surface)', border: 'none' }}>
+                        {item.grade}
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                       <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Precio</span>
-                       <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)' }}>RD$ {item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <span className="form-label">Precio</span>
+                      <h4 style={{ fontFamily: 'var(--font-headline)', fontSize: '2.2rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '-1.5px' }}>
+                        RD$ {item.price.toLocaleString()}
+                      </h4>
                     </div>
                     <a
-                      href={`${waBase}?text=${encodeURIComponent(`Hola, me interesa el ${item.specificModel} (Grado ${item.grade}, Batería ${item.battery}%) en RD$ ${item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })} 📱`)}`}
+                      href={`${waBase}?text=${encodeURIComponent(`Hola, me interesa el ${item.specificModel} de la colección ${product.model} 📱`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ background: '#25D366', color: '#fff', borderRadius: '10px', padding: '12px 20px', fontWeight: 700, fontSize: '0.95rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap' }}
+                      className="btn"
+                      style={{ padding: '16px 32px' }}
                     >
-                      <WhatsAppIcon />
-                      Consultar
+                      Solicitar Ahora
+                      <span className="material-symbols-outlined">shopping_bag</span>
                     </a>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '60px', background: 'var(--bg-card)', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-              <span className="material-icons" style={{ fontSize: '4rem', color: 'var(--text-muted)', marginBottom: '15px' }}>sentiment_dissatisfied</span>
-              <h3 style={{color: 'white', marginBottom: '10px', fontSize: '1.5rem'}}>Inventario Agotado</h3>
-              <p style={{ color: 'var(--text-muted)' }}>Actualmente no hay unidades disponibles de esta marca o familia.</p>
-            </div>
-          )}
-        </div>
-      </section>
+              ))
+            ) : (
+              <div style={{ padding: '100px', textAlign: 'center', background: 'var(--surface-container-low)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '4rem', color: 'var(--surface-container-highest)', marginBottom: '24px' }}>inventory</span>
+                <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem' }}>Próxima Disponibilidad</h3>
+                <p style={{ color: 'var(--on-surface-variant)' }}>Suscríbete a nuestro Instagram para ver cuando lleguen nuevas unidades.</p>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
     </>
   );
 }

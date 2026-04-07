@@ -110,36 +110,28 @@ const {
   }, []);
 
   const ImageInput = ({ label, name, value, onChange, onUpload, placeholder }) => (
-    <div style={{ marginBottom: '15px' }}>
-      <label style={{ display: 'block', color: 'var(--text-muted)', marginBottom: '6px', fontSize: '0.9rem' }}>{label}</label>
-      <div style={{ display: 'flex', gap: '10px' }}>
+    <div style={{ marginBottom: '24px' }}>
+      <label className="form-label">{label}</label>
+      <div style={{ display: 'flex', gap: '12px' }}>
         <input 
           type="url" 
           name={name} 
           value={value || ''} 
           onChange={onChange} 
-          style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'white', boxSizing: 'border-box' }} 
+          className="form-input"
+          style={{ flex: 1, margin: 0 }}
           placeholder={placeholder || "https://..."} 
         />
-        <label style={{ 
-          background: 'var(--primary)', 
-          color: 'black', 
-          padding: '10px 15px', 
-          borderRadius: '8px', 
-          cursor: 'pointer', 
-          fontWeight: 700, 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '5px',
-          whiteSpace: 'nowrap'
-        }}>
-          <span className="material-icons" style={{ fontSize: '1.2rem' }}>upload</span>
+        <label className="btn" style={{ cursor: 'pointer', padding: '0 24px' }}>
+          <span className="material-symbols-outlined">upload</span>
           Subir
           <input type="file" accept="image/*" onChange={onUpload} style={{ display: 'none' }} />
         </label>
       </div>
       {value && (
-        <img src={value} alt="Preview" style={{ marginTop: '10px', width: '100%', maxHeight: '120px', objectFit: 'contain', borderRadius: '10px', border: '1px solid var(--glass-border)', background: 'rgba(0,0,0,0.2)' }} />
+        <div style={{ marginTop: '16px', position: 'relative', borderRadius: 'var(--lg-radius)', overflow: 'hidden', height: '140px', background: 'var(--surface-container)' }}>
+          <img src={value} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        </div>
       )}
     </div>
   );
@@ -195,7 +187,11 @@ const {
     };
     
     if (editingProduct) {
-      await updateProduct(editingProduct.id, newProduct);
+      await updateProduct({ 
+        ...newProduct, 
+        id: editingProduct.id, 
+        stock: editingProduct.stock || [] 
+      });
     } else {
       await addProduct(newProduct);
     }
@@ -387,162 +383,127 @@ const {
   const labelStyle = { display: 'block', color: 'var(--text-muted)', marginBottom: '6px', fontSize: '0.9rem' };
 
   return (
-    <div style={{ padding: '40px 5%', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-      <div style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '12px', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+    <div style={{ padding: '40px 8%', minHeight: '100vh', background: 'var(--background)' }}>
+      {/* HEADER ADMIN */}
+      <div className="header-admin">
         <div>
-          <h1 style={{ color: 'white', fontSize: '2rem', marginBottom: '5px' }}>Panel CMS</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Gestión de contenidos, stock, y campañas promocionales.</p>
+          <span className="badge" style={{ marginBottom: '8px' }}>Admin Dashboard</span>
+          <h1 style={{ fontFamily: 'var(--font-headline)', fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-2px' }}>
+            Control <span style={{ color: 'var(--primary)' }}>Curation</span>
+          </h1>
         </div>
-        <Link to="/" className="btn btn-outline">
-          <span className="material-icons">home</span> Volver a Tienda
-        </Link>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <Link to="/" className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="material-symbols-outlined">home</span>
+            Vista Cliente
+          </Link>
+          <button onClick={() => logout()} className="btn" style={{ background: 'var(--surface-container-highest)', color: 'var(--on-surface)' }}>
+            <span className="material-symbols-outlined">logout</span>
+          </button>
+        </div>
       </div>
 
-      {/* TAB BAR */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px', flexWrap: 'wrap' }}>
+      {/* NAVIGATION TABS - EDITORIAL STYLE */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '32px', 
+        marginBottom: '64px', 
+        borderBottom: '1px solid var(--outline-variant)',
+        overflowX: 'auto',
+        scrollbarWidth: 'none'
+      }}>
         {[
-          { key: 'settings', label: '🎭 Textos e Imágenes' },
-          { key: 'models',   label: '📂 Familias / Marcas' },
-          { key: 'stock',    label: '📦 Equipos en Stock' },
-          { key: 'offers',   label: '🎉 Campañas' },
-          { key: 'users',    label: '👥 Usuarios' },
-          { key: 'config',   label: '⚙️ Configuración' },
-        ].filter(tab => (tab.key !== 'users' && tab.key !== 'config') || isSuperAdmin).map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            className={`btn ${activeTab !== tab.key ? 'btn-outline' : ''}`}
-            style={{ borderRadius: '8px', border: activeTab === tab.key ? 'none' : '1px solid var(--primary)' }}>
-            {tab.label}
-          </button>
-        ))}
+          { key: 'settings', label: 'Identidad', icon: 'palette' },
+          { key: 'models',   label: 'Familias', icon: 'inventory_2' },
+          { key: 'stock',    label: 'Inventario', icon: 'box' },
+          { key: 'offers',   label: 'Campañas', icon: 'campaign' },
+          { key: 'users',    label: 'Equipo', icon: 'group' },
+          { key: 'config',   label: 'Sistema', icon: 'settings' },
+        ].filter(tab => (tab.key !== 'users' && tab.key !== 'config') || isSuperAdmin).map(tab => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button 
+              key={tab.key} 
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '16px 0',
+                color: isActive ? 'var(--primary)' : 'var(--on-surface-variant)',
+                fontFamily: 'var(--font-headline)',
+                fontWeight: 700,
+                fontSize: '1rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                borderBottom: `2px solid ${isActive ? 'var(--primary)' : 'transparent'}`,
+                transition: 'var(--transition)',
+                opacity: isActive ? 1 : 0.6
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>{tab.icon}</span>
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* ===== SETTINGS TAB ===== */}
       {activeTab === 'settings' && (
-        <form onSubmit={handleSaveSettings} style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+        <form onSubmit={handleSaveSettings} style={{ display: 'grid', gap: '48px' }}>
           
-          {/* Hero */}
-          <div>
-            <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.3rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>🏠 Página Principal (Hero)</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-              <div><label style={labelStyle}>Nombre de la Tienda</label><input type="text" name="storeName" value={localSettings.storeName || ''} onChange={handleSettingsChange} style={inputStyle} required /></div>
-              <div><label style={labelStyle}>Badge del Banner (Ej: Ofertas 2026)</label><input type="text" name="heroBadge" value={localSettings.heroBadge || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Título Principal</label><input type="text" name="heroTitle" value={localSettings.heroTitle || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Palabra Resaltada</label><input type="text" name="heroTitleHighlight" value={localSettings.heroTitleHighlight || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
+          {/* Identity Section */}
+          <div style={{ background: 'var(--surface-container-low)', padding: '48px', borderRadius: 'var(--xl-radius)' }}>
+            <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>auto_awesome</span>
+              Identidad de Marca
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '32px' }}>
+              <div>
+                <label className="form-label">Nombre Comercial</label>
+                <input type="text" name="storeName" value={localSettings.storeName || ''} onChange={handleSettingsChange} className="form-input" required />
+              </div>
               <ImageInput 
-                label="🖼️ Imagen de Fondo del Banner (Hero)" 
+                label="Logotipo o Hero Image" 
                 name="heroImage" 
                 value={localSettings.heroImage} 
                 onChange={handleSettingsChange} 
                 onUpload={(e) => handleFileUpload(e, 'heroImage')}
               />
-              <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Descripción del Banner</label><textarea name="heroDescription" value={localSettings.heroDescription || ''} onChange={handleSettingsChange} rows="2" style={inputStyle} /></div>
+            </div>
+            <div style={{ marginTop: '32px' }}>
+              <label className="form-label">Eslogan Editorial</label>
+              <textarea name="footerDesc" value={localSettings.footerDesc || ''} onChange={handleSettingsChange} rows="2" className="form-input" />
             </div>
           </div>
 
-          {/* Acerca de */}
-          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
-            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}><span className="material-icons">info</span>Sección "Acerca de" (Nosotros)</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-              <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Título de la Sección</label><input type="text" name="aboutTitle" value={localSettings.aboutTitle || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Párrafo 1 (Descriptivo)</label><textarea name="aboutP1" value={localSettings.aboutP1 || ''} onChange={handleSettingsChange} rows="3" style={inputStyle} /></div>
-              <div><label style={labelStyle}>Párrafo 2 (Historial/Misión)</label><textarea name="aboutP2" value={localSettings.aboutP2 || ''} onChange={handleSettingsChange} rows="3" style={inputStyle} /></div>
-              
-              <div style={{ gridColumn: '1 / -1' }}>
-                <ImageInput 
-                  label="URL Imagen de la Tienda (Sección 'Acerca de')" 
-                  name="aboutImage" 
-                  value={localSettings.aboutImage} 
-                  onChange={handleSettingsChange} 
-                  onUpload={(e) => handleFileUpload(e, 'aboutImage')}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Estadísticas (opcional, se muestran en Home) */}
-          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
-            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}><span className="material-icons">analytics</span>Estadísticas y Banner Why Us</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div><label style={labelStyle}>Estadística 1 – Valor</label><input type="text" name="stat1Value" value={localSettings.stat1Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 1 – Etiqueta</label><input type="text" name="stat1Label" value={localSettings.stat1Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 2 – Valor</label><input type="text" name="stat2Value" value={localSettings.stat2Value || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Estadística 2 – Etiqueta</label><input type="text" name="stat2Label" value={localSettings.stat2Label || ''} onChange={handleSettingsChange} style={inputStyle} /></div>
-              
-              <div style={{ gridColumn: '1 / -1' }}>
-                <ImageInput 
-                  label="🖼️ URL Imagen General – sección '¿Por qué elegirnos?' (Banner opcional)" 
-                  name="whyUsSectionImage" 
-                  value={localSettings.whyUsSectionImage} 
-                  onChange={handleSettingsChange} 
-                  onUpload={(e) => handleFileUpload(e, 'whyUsSectionImage')}
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* CEO / About Us Extra */}
-          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
-            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="material-icons">person</span> Información Institucional (CEO)
+          {/* Hero Content Section */}
+          <div style={{ background: 'var(--surface-container-low)', padding: '48px', borderRadius: 'var(--xl-radius)' }}>
+            <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--secondary)' }}>campaign</span>
+              Comunicación Hero
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              <div>
-                <label style={labelStyle}>Nombre del CEO</label>
-                <input type="text" name="ceoName" value={localSettings.ceoName || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="SAILIN REYES RODRIGUEZ" />
-              </div>
-              <div>
-                <label style={labelStyle}>Título / Cargo</label>
-                <input type="text" name="ceoTitle" value={localSettings.ceoTitle || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="Ing. Electronico" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+              <div><label className="form-label">Título Principal</label><input type="text" name="heroTitle" value={localSettings.heroTitle || ''} onChange={handleSettingsChange} className="form-input" /></div>
+              <div><label className="form-label">Destaque</label><input type="text" name="heroTitleHighlight" value={localSettings.heroTitleHighlight || ''} onChange={handleSettingsChange} className="form-input" /></div>
+              <div style={{ gridColumn: 'span 2' }}>
+                <label className="form-label">Subtítulo Descriptivo</label>
+                <textarea name="heroDescription" value={localSettings.heroDescription || ''} onChange={handleSettingsChange} rows="2" className="form-input" />
               </div>
             </div>
           </div>
 
-          {/* Contact */}
-          <div>
-            <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.3rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>📞 Contacto y Redes Sociales</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-              <div>
-                <label style={labelStyle}>📧 Correo Electrónico</label>
-                <input type="email" name="contactEmail" value={localSettings.contactEmail || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="ventas@sts.com.do" />
-              </div>
-              <div>
-                <label style={labelStyle}>📱 Teléfono / WhatsApp</label>
-                <input type="text" name="contactPhone" value={localSettings.contactPhone || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="+1 (829) 424-1236" />
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelStyle}>📍 Dirección Física</label>
-                <input type="text" name="contactAddress" value={localSettings.contactAddress || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="Dirección completa..." />
-              </div>
-              <div style={{ gridColumn: '1 / -1', padding: '15px', background: 'rgba(0,240,255,0.05)', borderRadius: '12px', border: '1px solid rgba(0,240,255,0.2)', marginBottom: '10px' }}>
-                <h4 style={{ color: 'var(--primary)', margin: '0 0 10px 0', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="material-icons">my_location</span> Ubicación Precisa (Coordenadas)
-                </h4>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '15px' }}>
-                  ¿Tu local no aparece en el mapa? Haz clic derecho en Google Maps sobre tu puerta y copia las coordenadas (Ej: 18.4861, -69.9312).
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                  <div>
-                    <label style={{ ...labelStyle, fontSize: '0.8rem' }}>Latitud</label>
-                    <input type="text" name="locationLat" value={localSettings.locationLat || ''} onChange={handleSettingsChange} placeholder="Ej: 18.4861" style={inputStyle} />
-                  </div>
-                  <div>
-                    <label style={{ ...labelStyle, fontSize: '0.8rem' }}>Longitud</label>
-                    <input type="text" name="locationLng" value={localSettings.locationLng || ''} onChange={handleSettingsChange} placeholder="Ej: -69.9312" style={inputStyle} />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label style={labelStyle}>📸 Enlace de Instagram</label>
-                <input type="url" name="socialInstagram" value={localSettings.socialInstagram || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://instagram.com/..." />
-              </div>
-              <div>
-                <label style={labelStyle}>🔵 Enlace de Facebook</label>
-                <input type="url" name="socialFacebook" value={localSettings.socialFacebook || ''} onChange={handleSettingsChange} style={inputStyle} placeholder="https://facebook.com/..." />
-              </div>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelStyle}>Descripción en el Footer</label>
-                <textarea name="footerDesc" value={localSettings.footerDesc || ''} onChange={handleSettingsChange} rows="2" style={inputStyle} />
-              </div>
+          {/* Contact Section */}
+          <div style={{ background: 'var(--surface-container-low)', padding: '48px', borderRadius: 'var(--xl-radius)' }}>
+            <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--tertiary)' }}>contact_support</span>
+              Puntos de Contacto
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' }}>
+              <div><label className="form-label">Email Corporativo</label><input type="email" name="contactEmail" value={localSettings.contactEmail || ''} onChange={handleSettingsChange} className="form-input" /></div>
+              <div><label className="form-label">WhatsApp de Ventas</label><input type="text" name="contactPhone" value={localSettings.contactPhone || ''} onChange={handleSettingsChange} className="form-input" /></div>
+              <div style={{ gridColumn: 'span 2' }}><label className="form-label">Dirección Flagship</label><input type="text" name="contactAddress" value={localSettings.contactAddress || ''} onChange={handleSettingsChange} className="form-input" /></div>
             </div>
           </div>
 
@@ -568,56 +529,67 @@ const {
           </div>
 
           {/* Why Us Editor */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px', marginBottom: '20px' }}>
-              <h2 style={{ color: 'white', fontSize: '1.3rem', margin: 0 }}>✅ ¿Por qué elegirnos? (Razones)</h2>
-              <button type="button" className="btn" style={{ padding: '8px 16px', fontSize: '0.9rem' }} onClick={handleAddWhyUs}>
-                <span className="material-icons" style={{ fontSize: '1rem' }}>add</span> Agregar Razón
+          <div style={{ background: 'var(--surface-container-low)', padding: '48px', borderRadius: 'var(--xl-radius)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>verified</span>
+                Propuesta de Valor (Home)
+              </h3>
+              <button type="button" className="btn btn-outline" onClick={handleAddWhyUs}>
+                <span className="material-symbols-outlined">add</span>
+                Nuevo Item
               </button>
             </div>
-            <div style={{ display: 'grid', gap: '15px' }}>
+            <div style={{ display: 'grid', gap: '16px' }}>
               {(localSettings.whyUsItems || []).map((item, idx) => (
-                <div key={item.id || idx} style={{ display: 'grid', gridTemplateColumns: '60px 1fr 2fr auto', gap: '12px', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '10px', border: '1px solid var(--glass-border)' }}>
+                <div key={item.id || idx} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 2fr auto', gap: '24px', alignItems: 'center', background: 'var(--surface-container)', padding: '24px', borderRadius: 'var(--lg-radius)' }}>
                   <div>
-                    <label style={{ ...labelStyle, fontSize: '0.75rem' }}>Emoji</label>
-                    <input type="text" value={item.icon} onChange={e => handleWhyUsChange(idx, 'icon', e.target.value)} style={{ ...inputStyle, textAlign: 'center', fontSize: '1.5rem', padding: '6px' }} maxLength="4" />
+                    <label className="form-label">Icono</label>
+                    <input type="text" value={item.icon} onChange={e => handleWhyUsChange(idx, 'icon', e.target.value)} className="form-input" style={{ textAlign: 'center', fontSize: '1.5rem', padding: '12px' }} />
                   </div>
                   <div>
-                    <label style={{ ...labelStyle, fontSize: '0.75rem' }}>Título</label>
-                    <input type="text" value={item.title} onChange={e => handleWhyUsChange(idx, 'title', e.target.value)} style={inputStyle} placeholder="Ej: Garantía Real" />
+                    <label className="form-label">Título</label>
+                    <input type="text" value={item.title} onChange={e => handleWhyUsChange(idx, 'title', e.target.value)} className="form-input" />
                   </div>
                   <div>
-                    <label style={{ ...labelStyle, fontSize: '0.75rem' }}>Descripción</label>
-                    <input type="text" value={item.desc} onChange={e => handleWhyUsChange(idx, 'desc', e.target.value)} style={inputStyle} placeholder="Describe esta ventaja..." />
+                    <label className="form-label">Descripción Curada</label>
+                    <input type="text" value={item.desc} onChange={e => handleWhyUsChange(idx, 'desc', e.target.value)} className="form-input" />
                   </div>
-                  <button type="button" onClick={() => handleDeleteWhyUs(idx)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444', marginTop: '18px' }}>
-                    <span className="material-icons">delete</span>
+                  <button type="button" onClick={() => handleDeleteWhyUs(idx)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', marginTop: '16px' }}>
+                    <span className="material-symbols-outlined">delete</span>
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
-          <button type="submit" className="btn" style={{ alignSelf: 'flex-start', padding: '12px 30px', fontSize: '1rem' }}>
-            <span className="material-icons">save</span> Guardar Todos los Cambios
-          </button>
+          <div style={{ display: 'flex', gap: '24px' }}>
+            <button type="submit" className="btn" style={{ padding: '16px 48px' }}>
+              <span className="material-symbols-outlined">check_circle</span>
+              Publicar Cambios
+            </button>
+          </div>
         </form>
       )}
 
       {activeTab === 'models' && (
-        <div>
-          {/* GESTIÓN DE DEPARTAMENTOS */}
-          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)', marginBottom: '30px' }}>
-            <h3 style={{ color: 'var(--primary)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="material-icons">category</span> Gestión de Departamentos
-            </h3>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gap: '48px' }}>
+          {/* DEPARTMENTS - EDITORIAL LIST */}
+          <div style={{ background: 'var(--surface-container-low)', padding: '48px', borderRadius: 'var(--xl-radius)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>category</span>
+                Arquitectura de Catálogo
+              </h3>
+            </div>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '32px' }}>
               <input 
                 type="text" 
-                placeholder="Nuevo departamento (ej: Andadores)" 
+                placeholder="Nombre de la nueva familia..." 
                 value={newDepartment} 
                 onChange={e => setNewDepartment(e.target.value.trim())} 
-                style={{ flex: 1, minWidth: '250px', ...inputStyle }} 
+                className="form-input"
+                style={{ flex: 1, margin: 0 }}
               />
               <button 
                 className="btn" 
@@ -626,78 +598,37 @@ const {
                     updateDepartments([...departments, newDepartment]);
                     setNewDepartment('');
                   }
-                }} 
-                disabled={!newDepartment || departments.includes(newDepartment)}
+                }}
               >
-                <span className="material-icons">add</span> Agregar
+                Crear Grupo
               </button>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
               {departments.map((dept, index) => (
                 <div key={dept} style={{ 
-                  background: editingDepartmentIndex === index ? 'rgba(0,240,255,0.1)' : 'rgba(255,255,255,0.05)', 
-                  padding: '8px 16px', borderRadius: '20px', border: '1px solid var(--glass-border)',
-                  display: 'flex', alignItems: 'center', gap: '8px' 
+                  background: 'var(--surface-container)', 
+                  padding: '12px 24px', 
+                  borderRadius: '100px',
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '12px' 
                 }}>
-                  {editingDepartmentIndex === index ? (
-                    <>
-                      <input 
-                        value={tempDepartmentName} 
-                        onChange={e => setTempDepartmentName(e.target.value)} 
-                        style={{ background: 'transparent', border: 'none', color: 'white', width: '120px', fontSize: '0.9rem' }} 
-                        autoFocus 
-                      />
-                      <button onClick={() => {
-                        const newDepts = [...departments];
-                        newDepts[index] = tempDepartmentName.trim();
-                        updateDepartments(newDepts.filter(d => d.trim()));
-                        setEditingDepartmentIndex(-1);
-                        setTempDepartmentName('');
-                      }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer' }}>
-                        <span className="material-icons">check</span>
-                      </button>
-                      <button onClick={() => {
-                        setEditingDepartmentIndex(-1);
-                        setTempDepartmentName('');
-                      }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-                        <span className="material-icons">close</span>
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <span style={{ fontWeight: 500, color: 'white' }}>{dept}</span>
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        <button 
-                          onClick={() => {
-                            setEditingDepartmentIndex(index);
-                            setTempDepartmentName(dept);
-                          }} 
-                          style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: 0, width: '24px', height: '24px' }}
-                          title="Editar"
-                        >
-                          <span className="material-icons" style={{ fontSize: '1rem' }}>edit</span>
-                        </button>
-                        <button 
-                          onClick={() => updateDepartments(departments.filter((_, i) => i !== index))} 
-                          style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0, width: '24px', height: '24px' }}
-                          title="Eliminar"
-                        >
-                          <span className="material-icons" style={{ fontSize: '1rem' }}>delete</span>
-                        </button>
-                      </div>
-                    </>
-                  )}
+                  <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{dept}</span>
+                  <button onClick={() => updateDepartments(departments.filter((_, i) => i !== index))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)', display: 'flex' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>close</span>
+                  </button>
                 </div>
               ))}
             </div>
-            {departments.length === 0 && (
-              <p style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: '20px' }}>No hay departamentos. Agrega el primero para organizar tus marcas.</p>
-            )}
           </div>
 
-          <button className="btn" onClick={() => { setEditingProduct(null); setShowProductModal(true); }} style={{ marginBottom: '20px' }}>
-            <span className="material-icons">add</span> Crear Nueva Marca o Categoría
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2rem', letterSpacing: '-1px' }}>Familias Curadas</h2>
+            <button className="btn" onClick={() => { setEditingProduct(null); setShowProductModal(true); }}>
+              <span className="material-symbols-outlined">add</span>
+              Nueva Familia
+            </button>
+          </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '40px' }}>
             {/* MAIN CATEGORIES BY DEPARTMENT */}
@@ -798,116 +729,126 @@ const {
       )}
 
       {/* ===== STOCK TAB ===== */}
-{activeTab === 'stock' && (
-        <div>
+      {activeTab === 'stock' && (
+        <div style={{ display: 'grid', gap: '48px' }}>
           {products.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)' }}>Crea categorías de marcas primero en Familias / Marcas.</p>
+            <div style={{ padding: '80px', textAlign: 'center', background: 'var(--surface-container-low)', borderRadius: 'var(--xl-radius)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--on-surface-variant)', marginBottom: '16px' }}>inventory</span>
+              <p style={{ color: 'var(--on-surface-variant)' }}>Crea categorías de marca primero para gestionar el inventario.</p>
+            </div>
           ) : (
             <>
-              <button className="btn" onClick={() => { setSelectedProduct(products[0]?.id || ''); setShowStockModal(true); }} style={{ marginBottom: '20px' }}>
-                <span className="material-icons">add</span> Ingresar Equipo Nuevo
-              </button>
-              <div style={{ display: 'grid', gap: '40px' }}>
-                {/* MAIN STOCK LIST BY DEPARTMENT */}
-                {departments.map(dept => {
-                  const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
-                  if (deptProducts.length === 0) return null;
-                  
-                  return (
-                    <div key={dept}>
-                      <h3 style={{ color: 'var(--primary)', marginBottom: '15px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span className="material-icons">
-                          {dept === 'Celulares' ? 'smartphone' : 
-                           dept === 'Laptops & Computadoras' ? 'laptop' :
-                           dept === 'Tablets' ? 'tablet' :
-                           dept === 'Smartwatches' ? 'watch' :
-                           dept === 'TV & Entretenimiento' ? 'tv' : 'category'}
-                        </span>
-                        {dept}
-                      </h3>
-                      <div style={{ display: 'grid', gap: '20px' }}>
-                        {deptProducts.map(product => (
-                          <div key={product.id} className="device-list" style={{ marginTop: 0, background: 'var(--bg-card)', borderRadius: '15px', border: '1px solid var(--glass-border)', overflow: 'hidden' }}>
-                            <div style={{ padding: '15px 20px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                              <img src={product.image} style={{ width: '35px', height: '35px', objectFit: 'contain', borderRadius: '6px', background: '#111' }} alt={product.model} />
-                              <div>
-                                <h4 style={{ color: 'white', margin: 0, fontSize: '1.1rem' }}>{product.brand} - {product.model}</h4>
-                                <span className="stock-badge" style={{ marginLeft: 0, background: 'rgba(0, 240, 255, 0.1)', color: 'var(--primary)', padding: '1px 6px', borderRadius: '4px', fontSize: '0.75em' }}>Inventory: {product.stock.length} unds</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2rem', letterSpacing: '-1px' }}>Existencias Físicas</h2>
+                <button className="btn" onClick={() => { setSelectedProduct(products[0]?.id || ''); setShowStockModal(true); }}>
+                  <span className="material-symbols-outlined">add_box</span>
+                  Ingresar Equipo
+                </button>
+              </div>
+                <div style={{ display: 'grid', gap: '48px' }}>
+                  {departments.map(dept => {
+                    const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
+                    if (deptProducts.length === 0) return null;
+                    
+                    return (
+                      <div key={dept}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '24px' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>inventory_2</span>
+                          <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>{dept}</h3>
+                          <div style={{ flex: 1, height: '1px', background: 'var(--outline-variant)' }}></div>
+                        </div>
+
+                        <div style={{ display: 'grid', gap: '16px' }}>
+                          {deptProducts.map(product => (
+                            <div key={product.id} style={{ background: 'var(--surface-container-low)', borderRadius: 'var(--lg-radius)', overflow: 'hidden' }}>
+                              <div style={{ padding: '16px 24px', background: 'var(--surface-container)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <img src={product.image} style={{ width: '40px', height: '40px', objectFit: 'contain' }} alt={product.model} />
+                                <h4 style={{ fontFamily: 'var(--font-headline)', fontSize: '1rem', fontWeight: 800, margin: 0 }}>{product.brand} {product.model}</h4>
+                                <span className="badge" style={{ marginLeft: 'auto', background: 'var(--surface-container-highest)', color: 'var(--on-surface)' }}>{product.stock.length} unidades</span>
+                              </div>
+
+                              <div className="device-list" style={{ padding: '8px' }}>
+                                {product.stock.length === 0 ? (
+                                  <div style={{ padding: '32px', textAlign: 'center', color: 'var(--on-surface-variant)', fontSize: '0.9rem' }}>Aún no hay unidades registradas.</div>
+                                ) : (
+                                  product.stock.map(item => (
+                                    <div key={item.id} className="device-item" style={{ background: 'transparent' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                                        <span style={{ fontWeight: 800 }}>{item.specificModel}</span>
+                                        {dept === 'Celulares' && (
+                                          <span style={{ color: 'var(--tertiary)', fontWeight: 800 }}>{item.battery}%</span>
+                                        )}
+                                        <div className={`device-grade grade-${item.grade.replace(/\s+/g, '-').toLowerCase()}`} style={{ border: 'none', background: 'var(--surface-container-highest)', color: 'var(--on-surface)' }}>
+                                          {item.grade}
+                                        </div>
+                                      </div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                                        <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
+                                        <button onClick={() => handleDeleteStock(product.id, item.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', display: 'flex' }}>
+                                          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
                               </div>
                             </div>
-                            {product.stock.length === 0 ? (
-                              <div style={{ padding: '15px', color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.9rem' }}>Sin equipos ingresados aún.</div>
-                            ) : (
-                              product.stock.map(item => (
-                                <div key={item.id} className="device-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '10px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                    <span style={{ color: 'white', fontWeight: 600, fontSize: '0.95rem' }}>{item.specificModel}</span>
-                                    <span className={`device-grade grade-${item.grade.toLowerCase()}`} style={{ fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', border: '1px solid currentColor', fontSize: '0.75rem' }}>Grado {item.grade}</span>
-                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Bat: {item.battery}%</span>
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                    <span style={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>RD$ {item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
-                                    <button className="action-btn delete-btn" onClick={() => handleDeleteStock(product.id, item.id)} title="Vendido/Eliminar" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                                      <span className="material-icons" style={{ color: '#ef4444', fontSize: '1.2rem' }}>delete</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-                {/* FALLBACK: UNCLASSIFIED STOCK */}
-                {(() => {
+                    );
+                  })}
+                  
+                  {/* FALLBACK: UNCLASSIFIED STOCK */}
+                  {(() => {
                     const classifiedIds = new Set();
                     departments.forEach(dept => {
-                        products.filter(p => (p.department || 'Celulares') === dept).forEach(p => classifiedIds.add(p.id));
+                      products.filter(p => (p.department || 'Celulares') === dept).forEach(p => classifiedIds.add(p.id));
                     });
                     const unclassified = products.filter(p => !classifiedIds.has(p.id));
-
                     if (unclassified.length === 0) return null;
 
                     return (
-                        <div style={{ marginTop: '40px', borderTop: '2px dashed var(--glass-border)', paddingTop: '40px' }}>
-                            <h3 style={{ color: '#94a3b8', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span className="material-icons">help_outline</span>
-                                Otros Equipos (Sin Categoría Detectada)
-                            </h3>
-                            <div style={{ display: 'grid', gap: '20px' }}>
-                                {unclassified.map(product => (
-                                    <div key={product.id} className="device-list" style={{ marginTop: 0, background: 'rgba(255,255,255,0.01)', borderRadius: '15px', border: '1px solid var(--glass-border)', overflow: 'hidden', opacity: 0.8 }}>
-                                        <div style={{ padding: '15px 20px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                            <img src={product.image} style={{ width: '35px', height: '35px', objectFit: 'contain', borderRadius: '6px', background: '#111' }} alt={product.model} />
-                                            <div>
-                                                <h4 style={{ color: 'white', margin: 0, fontSize: '1.1rem' }}>{product.brand} - {product.model}</h4>
-                                                <span className="stock-badge" style={{ marginLeft: 0, background: '#334155', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '0.75em' }}>Dept: {product.department || 'Sin asignar'}</span>
-                                            </div>
-                                        </div>
-                                        {product.stock.length > 0 && product.stock.map(item => (
-                                            <div key={item.id} className="device-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '10px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                                    <span style={{ color: 'white', fontWeight: 600, fontSize: '0.95rem' }}>{item.specificModel}</span>
-                                                    <span className={`device-grade grade-${item.grade.toLowerCase()}`} style={{ fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', border: '1px solid currentColor', fontSize: '0.75rem' }}>Grado {item.grade}</span>
-                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Bat: {item.battery}%</span>
-                                                </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                                                    <span style={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>RD$ {item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
-                                                    <button className="action-btn delete-btn" onClick={() => handleDeleteStock(product.id, item.id)} title="Vendido/Eliminar" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                                                        <span className="material-icons" style={{ color: '#ef4444', fontSize: '1.2rem' }}>delete</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ))}
-                            </div>
+                      <div style={{ marginTop: '48px', opacity: 0.8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '24px' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--on-surface-variant)' }}>help</span>
+                          <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1rem', fontWeight: 800, margin: 0, color: 'var(--on-surface-variant)' }}>Otros Equipos (Sin Clasificar)</h3>
+                          <div style={{ flex: 1, height: '1px', background: 'var(--outline-variant)' }}></div>
                         </div>
+                        <div style={{ display: 'grid', gap: '16px' }}>
+                          {unclassified.map(product => (
+                            <div key={product.id} style={{ background: 'var(--surface-container-low)', borderRadius: 'var(--lg-radius)', overflow: 'hidden' }}>
+                              {/* Same structure as above for unclassified */}
+                              <div style={{ padding: '16px 24px', background: 'var(--surface-container)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <img src={product.image} style={{ width: '40px', height: '40px', objectFit: 'contain' }} alt={product.model} />
+                                <h4 style={{ fontFamily: 'var(--font-headline)', fontSize: '1rem', fontWeight: 800, margin: 0 }}>{product.brand} {product.model}</h4>
+                                <span className="badge" style={{ marginLeft: 'auto', background: 'var(--surface-container-highest)' }}>{product.stock.length} unidades</span>
+                              </div>
+                              <div className="device-list" style={{ padding: '8px' }}>
+                                {product.stock.map(item => (
+                                  <div key={item.id} className="device-item" style={{ background: 'transparent' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                                      <span style={{ fontWeight: 800 }}>{item.specificModel}</span>
+                                      <div className={`device-grade grade-${item.grade.replace(/\s+/g, '-').toLowerCase()}`} style={{ border: 'none', background: 'var(--surface-container-highest)' }}>
+                                        {item.grade}
+                                      </div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                                      <span style={{ fontWeight: 900, color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
+                                      <button onClick={() => handleDeleteStock(product.id, item.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', display: 'flex' }}>
+                                        <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     );
-                })()}
-              </div>
+                  })()}
+                </div>
             </>
           )}
         </div>
@@ -915,59 +856,68 @@ const {
 
       {/* ===== OFFERS / CAMPAIGNS TAB ===== */}
       {activeTab === 'offers' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'grid', gap: '48px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h2 style={{ color: 'white', margin: 0, fontSize: '1.4rem' }}>🎉 Campañas Promocionales</h2>
-              <p style={{ color: 'var(--text-muted)', margin: '5px 0 0' }}>Crea y activa campañas de temporada que se muestran en la tienda.</p>
+              <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2rem', letterSpacing: '-1px', margin: 0 }}>Campañas Activas</h2>
+              <p style={{ color: 'var(--on-surface-variant)', marginTop: '8px' }}>Estrategias promocionales y eventos curados.</p>
             </div>
             <button className="btn" onClick={() => setShowOfferModal(true)}>
-              <span className="material-icons">add</span> Nueva Campaña
+              <span className="material-symbols-outlined">campaign</span>
+              Nueva Campaña
             </button>
           </div>
 
           {offers.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-card)', borderRadius: '15px', border: '2px dashed var(--glass-border)' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🎊</div>
-              <h3 style={{ color: 'white', marginBottom: '10px' }}>No hay campañas aún</h3>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '20px' }}>Crea tu primera campaña para mostrar ofertas especiales en la tienda.</p>
-              <button className="btn" onClick={() => setShowOfferModal(true)}>Crear Primera Campaña</button>
+            <div style={{ padding: '80px', textAlign: 'center', background: 'var(--surface-container-low)', borderRadius: 'var(--xl-radius)', border: '2px dashed var(--outline-variant)' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--on-surface-variant)', marginBottom: '16px' }}>celebration</span>
+              <p style={{ color: 'var(--on-surface-variant)' }}>No hay campañas activas en este momento.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '32px' }}>
               {offers.map(offer => {
                 const live = isOfferLive(offer);
                 return (
-                  <div key={offer.id} style={{ borderRadius: '16px', overflow: 'hidden', border: `2px solid ${live ? offer.accentColor || 'var(--primary)' : 'var(--glass-border)'}`, transition: 'all 0.3s' }}>
-                    <div style={{ background: offer.bgColor || 'var(--bg-card)', padding: '20px', display: 'flex', alignItems: 'center', gap: '15px', position: 'relative' }}>
+                  <div key={offer.id} style={{ 
+                    background: 'var(--surface-container-low)', 
+                    borderRadius: 'var(--xl-radius)', 
+                    overflow: 'hidden',
+                    border: live ? `2px solid ${offer.accentColor || 'var(--primary)'}` : '2px solid transparent'
+                  }}>
+                    <div style={{ background: offer.bgColor || 'var(--surface-container)', padding: '32px', position: 'relative', overflow: 'hidden' }}>
                       {offer.image && (
-                        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0.15, pointerEvents: 'none' }}>
-                          <img src={offer.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="bg" />
-                        </div>
+                        <img src={offer.image} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.2 }} alt="" />
                       )}
-                      <span style={{ fontSize: '2.5rem', zIndex: 1 }}>{offer.emoji}</span>
-                      <div style={{ flex: 1, zIndex: 1 }}>
-                        <h3 style={{ color: 'white', margin: 0, fontSize: '1.2rem' }}>{offer.name}</h3>
-                        {offer.discount > 0 && <span style={{ color: offer.accentColor || '#00f0ff', fontWeight: 700, fontSize: '1.1rem' }}>{offer.discount}% OFF</span>}
+                      <div style={{ position: 'relative', zIndex: 1 }}>
+                        <span style={{ fontSize: '3rem', display: 'block', marginBottom: '16px' }}>{offer.emoji}</span>
+                        <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>{offer.name}</h3>
+                        {offer.discount > 0 && (
+                          <div style={{ display: 'inline-block', background: offer.accentColor || 'var(--primary)', color: 'black', padding: '4px 12px', borderRadius: '100px', fontWeight: 900, fontSize: '0.9rem', marginTop: '8px' }}>
+                            {offer.discount}% OFF
+                          </div>
+                        )}
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', zIndex: 1 }}>
-                        <span style={{ fontSize: '0.7rem', color: live ? '#4ade80' : '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          {live ? '● ACTIVA' : '○ INACTIVA'}
+                      <div style={{ position: 'absolute', top: '16px', right: '16px' }}>
+                        <span style={{ 
+                          background: live ? 'var(--tertiary)' : 'var(--surface-container-highest)', 
+                          color: live ? 'black' : 'var(--on-surface)',
+                          padding: '4px 12px', 
+                          borderRadius: '100px', 
+                          fontSize: '0.7rem', 
+                          fontWeight: 900 
+                        }}>
+                          {live ? 'EN VIVO' : 'PAUSADO'}
                         </span>
                       </div>
                     </div>
-                    <div style={{ background: 'var(--bg-card)', padding: '15px 20px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                      {offer.description && <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '0 0 10px' }}>{offer.description}</p>}
-                      <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                        {offer.startDate && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: '4px' }}>Desde: {offer.startDate}</span>}
-                        {offer.endDate && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: '4px' }}>Hasta: {offer.endDate}</span>}
-                      </div>
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={() => handleToggleOffer(offer)} className={`btn ${offer.active ? '' : 'btn-outline'}`} style={{ flex: 1, padding: '8px', fontSize: '0.85rem', border: offer.active ? 'none' : '1px solid var(--glass-border)' }}>
-                          {offer.active ? '✅ Desactivar' : '▶️ Activar'}
+                    <div style={{ padding: '24px' }}>
+                      <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', marginBottom: '24px' }}>{offer.description}</p>
+                      <div style={{ display: 'flex', gap: '12px' }}>
+                        <button onClick={() => handleToggleOffer(offer)} className="btn btn-outline" style={{ flex: 1 }}>
+                          {offer.active ? 'Pausar' : 'Reactivar'}
                         </button>
-                        <button onClick={() => deleteOffer(offer.id)} style={{ background: 'transparent', border: '1px solid #ef4444', borderRadius: '8px', color: '#ef4444', padding: '8px 12px', cursor: 'pointer' }}>
-                          <span className="material-icons" style={{ fontSize: '1.1rem', display: 'block' }}>delete</span>
+                        <button onClick={() => deleteOffer(offer.id)} style={{ background: 'var(--surface-container-highest)', border: 'none', color: 'var(--error)', width: '40px', height: '40px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
                         </button>
                       </div>
                     </div>
@@ -981,39 +931,66 @@ const {
 
       {/* ===== MODAL: STOCK ===== */}
       {showStockModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(5px)' }}>
-          <div style={{ background: 'var(--bg-dark)', border: '1px solid var(--glass-border)', borderRadius: '15px', padding: '30px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ color: 'white', marginBottom: '20px' }}>Registrar Nuevo Equipo</h2>
-            <form onSubmit={handleAddStock}>
-              <label style={labelStyle}>Marca / Categoría</label>
-              <select style={{ ...inputStyle, marginBottom: '15px' }} value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>
-                <option value="">-- Elige la Familia --</option>
-                {products.map(p => <option key={p.id} value={p.id} style={{ background: 'var(--bg-dark)' }}>{p.model}</option>)}
-              </select>
-              <label style={labelStyle}>Modelo Específico (Ej: iPhone 14 Pro Max 256GB)</label>
-              <input type="text" required placeholder="Escribe el modelo exacto del equipo" value={newStock.specificModel} onChange={e => setNewStock({ ...newStock, specificModel: e.target.value })} style={{ ...inputStyle, marginBottom: '15px' }} />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--scrim)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(12px)' }}>
+          <div style={{ background: 'var(--surface-container-high)', borderRadius: 'var(--xl-radius)', padding: '48px', width: '90%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '32px', letterSpacing: '-0.5px' }}>Ingresar Nuevo Stock</h2>
+            <form onSubmit={handleAddStock} style={{ display: 'grid', gap: '24px' }}>
+              <div>
+                <label className="form-label">Marca / Familia Core</label>
+                <select className="form-input" value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>
+                  <option value="">-- Elige la Familia --</option>
+                  {departments.map(dept => {
+                    const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
+                    if (deptProducts.length === 0) return null;
+                    return (
+                      <optgroup key={dept} label={dept.toUpperCase()} style={{ background: 'var(--surface-container-high)' }}>
+                        {deptProducts.map(p => (
+                          <option key={p.id} value={p.id}>{p.brand} {p.model}</option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
+                </select>
+              </div>
+              
+              <div>
+                <label className="form-label">Modelo Detallado (Ej: iPhone 15 Pro Max 1TB)</label>
+                <input type="text" required placeholder="Especificaciones exactas..." value={newStock.specificModel} onChange={e => setNewStock({ ...newStock, specificModel: e.target.value })} className="form-input" />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 <div>
-                  <label style={labelStyle}>Grado Real</label>
-                  <select value={newStock.grade} onChange={e => setNewStock({ ...newStock, grade: e.target.value })} style={inputStyle}>
-                    <option value="A" style={{ background: 'var(--bg-dark)' }}>Grado A</option>
-                    <option value="B" style={{ background: 'var(--bg-dark)' }}>Grado B</option>
-                    <option value="C" style={{ background: 'var(--bg-dark)' }}>Grado C</option>
+                  <label className="form-label">Condición Estética</label>
+                  <select value={newStock.grade} onChange={e => setNewStock({ ...newStock, grade: e.target.value })} className="form-input">
+                    <option value="A">Grado A</option>
+                    <option value="B">Grado B</option>
+                    <option value="C">Grado C</option>
+                    <option value="Nuevo">✨ Nuevo</option>
+                    <option value="Como nuevo">💎 Como nuevo</option>
+                    <option value="Certificados">✅ Certificado</option>
+                    <option value="Open Box">📦 Open Box</option>
                   </select>
                 </div>
-                {/* Battery - Only show for battery-operated devices */}
-                {selectedProduct && !['TV & Entretenimiento', 'Accesorios'].includes(products.find(p => p.id === selectedProduct)?.department) && (
+                {selectedProduct && products.find(p => p.id === selectedProduct)?.department === 'Celulares' && (
                   <div>
-                    <label style={labelStyle}>🔋 Condición de Batería (%)</label>
-                    <input type="number" min="1" max="100" required value={newStock.battery} onChange={e => setNewStock({ ...newStock, battery: e.target.value })} style={inputStyle} placeholder="Ej: 95" />
+                    <label className="form-label">Salud de Batería (%)</label>
+                    <input type="number" min="1" max="100" required value={newStock.battery} onChange={e => setNewStock({ ...newStock, battery: e.target.value })} className="form-input" />
                   </div>
                 )}
               </div>
-              <label style={labelStyle}>Precio (RD$)</label>
-              <input type="number" required placeholder="Ej: 35000" value={newStock.price} onChange={e => setNewStock({ ...newStock, price: e.target.value })} style={{ ...inputStyle, marginBottom: '20px' }} />
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="submit" className="btn" style={{ flex: 1 }} disabled={!selectedProduct}>Ingresar Equipo</button>
-                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowStockModal(false)}>Cancelar</button>
+
+              <div>
+                <label className="form-label">Precio Final (RD$)</label>
+                <input type="number" required placeholder="Ej: 35000" value={newStock.price} onChange={e => setNewStock({ ...newStock, price: e.target.value })} className="form-input" />
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+                <button type="submit" className="btn" style={{ flex: 1 }} disabled={!selectedProduct}>
+                  Publicar en Inventario
+                </button>
+                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowStockModal(false)}>
+                  Descartar
+                </button>
               </div>
             </form>
           </div>
@@ -1022,69 +999,55 @@ const {
 
       {/* ===== MODAL: PRODUCT FAMILY (ADD/EDIT) ===== */}
       {showProductModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(5px)' }}>
-          <div style={{ background: 'var(--bg-dark)', border: '1px solid var(--glass-border)', borderRadius: '15px', padding: '30px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <form onSubmit={handleCreateProduct}>
-              <h2 style={{ color: 'white', marginBottom: '20px' }}>{editingProduct ? 'Editar Familia' : 'Nueva Marca o Categoría'}</h2>
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--scrim)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(12px)' }}>
+          <div style={{ background: 'var(--surface-container-high)', borderRadius: 'var(--xl-radius)', padding: '48px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <form onSubmit={handleCreateProduct} style={{ display: 'grid', gap: '24px' }}>
+              <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '8px', letterSpacing: '-0.5px' }}>
+                {editingProduct ? 'Redefinir Familia' : 'Curar Nueva Familia'}
+              </h2>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 <div>
-                  <label className="form-label">Marca (Ej: Apple)</label>
-                  <input name="brand" className="form-input" defaultValue={editingProduct?.brand || ''} required style={{ marginBottom: 0 }} />
+                  <label className="form-label">Marca (Ej: Samsung)</label>
+                  <input name="brand" className="form-input" defaultValue={editingProduct?.brand || ''} required />
                 </div>
                 <div>
-                  <label className="form-label">Nombre Catálogo (Ej: iPhone 15)</label>
-                  <input name="model" className="form-input" defaultValue={editingProduct?.model || ''} required style={{ marginBottom: 0 }} />
+                  <label className="form-label">Línea (Ej: Galaxy S24)</label>
+                  <input name="model" className="form-input" defaultValue={editingProduct?.model || ''} required />
                 </div>
               </div>
               
-              <label className="form-label">Departamento</label>
-              <div style={{ position: 'relative' }}>
-                <select 
-                  name="department" 
-                  className="form-input" 
-                  defaultValue={editingProduct?.department || departments[0] || ''} 
-                  style={{ marginBottom: '15px', paddingRight: '100px' }}
-                >
+              <div>
+                <label className="form-label">Departamento Editorial</label>
+                <select name="department" className="form-input" defaultValue={editingProduct?.department || departments[0] || ''}>
                   <option value="">-- Selecciona --</option>
                   {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
-                  <option value="otro">➕ Otro (Nuevo)</option>
+                  <option value="otro">+ Crear Nuevo Departamento</option>
                 </select>
-                <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: '5px' }}>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>o escribe libre</span>
-                </div>
               </div>
 
-              <label className="form-label">Descripción</label>
-              <textarea name="description" className="form-input" defaultValue={editingProduct?.description || ''} rows="2" style={{ marginBottom: '15px' }} />
+              <div>
+                <label className="form-label">Descripción de Marketing</label>
+                <textarea name="description" className="form-input" defaultValue={editingProduct?.description || ''} rows="3" />
+              </div>
               
-              <label className="form-label">Imagen de la Marca</label>
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                <input 
-                  id="modalImageInput" 
-                  name="image" 
-                  className="form-input" 
-                  defaultValue={editingProduct?.image || ''} 
-                  style={{ marginBottom: 0, flex: 1 }} 
-                  placeholder="URL de imagen..."
-                />
-                <label style={{ background: 'var(--primary)', color: 'black', padding: '0 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span className="material-icons">upload</span>
-                  Subir
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    style={{ display: 'none' }} 
-                    onChange={(e) => handleFileUpload(e, 'image', false, (base64) => {
-                      document.getElementById('modalImageInput').value = base64;
-                    })} 
-                  />
-                </label>
-              </div>
+              <ImageInput 
+                label="Imagen de Presentación" 
+                name="image" 
+                value={editingProduct?.image || ''} 
+                onUpload={(e) => handleFileUpload(e, 'image', false, (base64) => {
+                  const input = e.target.closest('form').querySelector('input[name="image"]');
+                  if (input) input.value = base64;
+                })} 
+              />
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>
-                <button type="submit" className="btn" style={{ flex: 2 }}>{editingProduct ? 'Guardar Cambios' : 'Crear Registro'}</button>
-                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowProductModal(false); setEditingProduct(null); }}>Cancelar</button>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+                <button type="submit" className="btn" style={{ flex: 2 }}>
+                  {editingProduct ? 'Guardar Redefinición' : 'Publicar Familia'}
+                </button>
+                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowProductModal(false); setEditingProduct(null); }}>
+                  Cancelar
+                </button>
               </div>
             </form>
           </div>
@@ -1093,82 +1056,77 @@ const {
 
       {/* ===== MODAL: NEW OFFER ===== */}
       {showOfferModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(5px)' }}>
-          <div style={{ background: 'var(--bg-dark)', border: '1px solid var(--glass-border)', borderRadius: '15px', padding: '30px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>🎉 Nueva Campaña Promocional</h2>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '0.9rem' }}>Aplica una plantilla o configura manualmente.</p>
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--scrim)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(12px)' }}>
+          <div style={{ background: 'var(--surface-container-high)', borderRadius: 'var(--xl-radius)', padding: '48px', width: '90%', maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '8px', letterSpacing: '-0.5px' }}>Crear Evento Comercial</h2>
+            <p style={{ color: 'var(--on-surface-variant)', marginBottom: '32px' }}>Diseña una campaña de temporada para cautivar al cliente.</p>
             
             {/* Templates */}
-            <div style={{ marginBottom: '25px' }}>
-              <label style={{ ...labelStyle, marginBottom: '10px' }}>⚡ Plantillas Rápidas</label>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ marginBottom: '32px' }}>
+              <label className="form-label">Plantillas Editoriales</label>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 {OFFER_TEMPLATES.map(tpl => (
                   <button key={tpl.name} type="button" onClick={() => handleApplyTemplate(tpl)}
-                    style={{ background: tpl.color, border: `1px solid ${tpl.accentColor}`, borderRadius: '8px', color: 'white', padding: '8px 14px', cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s' }}>
+                    style={{ background: tpl.color, border: `1px solid ${tpl.accentColor}`, borderRadius: '100px', color: 'white', padding: '8px 20px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 900, transition: 'var(--transition)' }}>
                     {tpl.emoji} {tpl.name}
                   </button>
                 ))}
               </div>
             </div>
 
-            <form onSubmit={handleSaveOffer}>
-              <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '15px', marginBottom: '15px' }}>
-                <div><label style={labelStyle}>Emoji</label><input type="text" value={newOffer.emoji} onChange={e => setNewOffer({ ...newOffer, emoji: e.target.value })} style={{ ...inputStyle, textAlign: 'center', fontSize: '1.5rem', padding: '8px' }} maxLength="4" /></div>
-                <div><label style={labelStyle}>Nombre de la Campaña *</label><input type="text" required placeholder="Ej: Black Friday 2026" value={newOffer.name} onChange={e => setNewOffer({ ...newOffer, name: e.target.value })} style={inputStyle} /></div>
+            <form onSubmit={handleSaveOffer} style={{ display: 'grid', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '24px' }}>
+                <div><label className="form-label">Símbolo</label><input type="text" value={newOffer.emoji} onChange={e => setNewOffer({ ...newOffer, emoji: e.target.value })} className="form-input" style={{ textAlign: 'center', fontSize: '2rem', height: '100%' }} maxLength="4" /></div>
+                <div><label className="form-label">Título del Evento</label><input type="text" required placeholder="Ej: Tech Week 2026" value={newOffer.name} onChange={e => setNewOffer({ ...newOffer, name: e.target.value })} className="form-input" /></div>
               </div>
               
-              <div><label style={labelStyle}>Descripción (opcional)</label><textarea rows="2" placeholder="Ej: ¡Los mejores descuentos del año en todos nuestros equipos!" value={newOffer.description} onChange={e => setNewOffer({ ...newOffer, description: e.target.value })} style={{ ...inputStyle, marginBottom: '15px' }} /></div>
+              <div><label className="form-label">Copia Promocional</label><textarea rows="3" placeholder="Describe el beneficio principal de esta campaña..." value={newOffer.description} onChange={e => setNewOffer({ ...newOffer, description: e.target.value })} className="form-input" /></div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '15px', marginBottom: '15px' }}>
-                <div><label style={labelStyle}>% Descuento (0 = sin descuento)</label><input type="number" min="0" max="99" value={newOffer.discount} onChange={e => setNewOffer({ ...newOffer, discount: e.target.value })} style={inputStyle} /></div>
-                <div><label style={labelStyle}>Fecha Inicio</label><input type="date" value={newOffer.startDate} onChange={e => setNewOffer({ ...newOffer, startDate: e.target.value })} style={{ ...inputStyle, colorScheme: 'dark' }} /></div>
-                <div><label style={labelStyle}>Fecha Fin</label><input type="date" value={newOffer.endDate} onChange={e => setNewOffer({ ...newOffer, endDate: e.target.value })} style={{ ...inputStyle, colorScheme: 'dark' }} /></div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '24px' }}>
+                <div><label className="form-label">% Off</label><input type="number" min="0" max="99" value={newOffer.discount} onChange={e => setNewOffer({ ...newOffer, discount: e.target.value })} className="form-input" /></div>
+                <div><label className="form-label">Apertura</label><input type="date" value={newOffer.startDate} onChange={e => setNewOffer({ ...newOffer, startDate: e.target.value })} className="form-input" /></div>
+                <div><label className="form-label">Cierre</label><input type="date" value={newOffer.endDate} onChange={e => setNewOffer({ ...newOffer, endDate: e.target.value })} className="form-input" /></div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-                <div>
-                  <label style={labelStyle}>Color de Fondo</label>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <input type="color" value={newOffer.bgColor} onChange={e => setNewOffer({ ...newOffer, bgColor: e.target.value })} style={{ width: '40px', height: '40px', border: 'none', borderRadius: '6px', cursor: 'pointer', background: 'transparent' }} />
-                    <input type="text" value={newOffer.bgColor} onChange={e => setNewOffer({ ...newOffer, bgColor: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div style={{ background: 'var(--surface-container)', padding: '24px', borderRadius: 'var(--lg-radius)' }}>
+                  <label className="form-label">Paleta Base</label>
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <input type="color" value={newOffer.bgColor} onChange={e => setNewOffer({ ...newOffer, bgColor: e.target.value })} style={{ width: '48px', height: '48px', border: 'none', borderRadius: '100px', cursor: 'pointer', background: 'transparent' }} />
+                    <input type="text" value={newOffer.bgColor} onChange={e => setNewOffer({ ...newOffer, bgColor: e.target.value })} className="form-input" style={{ margin: 0 }} />
                   </div>
                 </div>
-                <div>
-                  <label style={labelStyle}>Color de Acento</label>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <input type="color" value={newOffer.accentColor} onChange={e => setNewOffer({ ...newOffer, accentColor: e.target.value })} style={{ width: '40px', height: '40px', border: 'none', borderRadius: '6px', cursor: 'pointer', background: 'transparent' }} />
-                    <input type="text" value={newOffer.accentColor} onChange={e => setNewOffer({ ...newOffer, accentColor: e.target.value })} style={{ ...inputStyle, flex: 1 }} />
+                <div style={{ background: 'var(--surface-container)', padding: '24px', borderRadius: 'var(--lg-radius)' }}>
+                  <label className="form-label">Paleta Acento</label>
+                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                    <input type="color" value={newOffer.accentColor} onChange={e => setNewOffer({ ...newOffer, accentColor: e.target.value })} style={{ width: '48px', height: '48px', border: 'none', borderRadius: '100px', cursor: 'pointer', background: 'transparent' }} />
+                    <input type="text" value={newOffer.accentColor} onChange={e => setNewOffer({ ...newOffer, accentColor: e.target.value })} className="form-input" style={{ margin: 0 }} />
                   </div>
                 </div>
               </div>
 
-              <div style={{ marginBottom: '20px' }}>
-                <ImageInput 
-                  label="🖼️ Imagen Publicitaria (Opcional)" 
-                  name="offerImage" 
-                  value={newOffer.image} 
-                  onChange={(e) => setNewOffer({ ...newOffer, image: e.target.value })} 
-                  onUpload={(e) => handleFileUpload(e, 'image', false, (base64) => setNewOffer({ ...newOffer, image: base64 }))}
-                />
-              </div>
+              <ImageInput 
+                label="Imagen Atmosférica (Opcional)" 
+                name="offerImage" 
+                value={newOffer.image} 
+                onChange={(e) => setNewOffer({ ...newOffer, image: e.target.value })} 
+                onUpload={(e) => handleFileUpload(e, 'image', false, (base64) => setNewOffer({ ...newOffer, image: base64 }))}
+              />
 
-              {/* Preview */}
-              <div style={{ background: newOffer.bgColor, borderRadius: '10px', padding: '15px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px', border: `2px solid ${newOffer.accentColor}` }}>
-                <span style={{ fontSize: '2rem' }}>{newOffer.emoji}</span>
-                <div>
-                  <div style={{ color: 'white', fontWeight: 700 }}>{newOffer.name || 'Nombre de la Campaña'}</div>
-                  {newOffer.discount > 0 && <div style={{ color: newOffer.accentColor, fontWeight: 700 }}>{newOffer.discount}% OFF en todos los equipos</div>}
+              <div style={{ background: 'var(--surface-container-highest)', padding: '32px', borderRadius: 'var(--lg-radius)', marginTop: '16px' }}>
+                <label className="form-label">Vista Previa Editorial</label>
+                <div style={{ background: newOffer.bgColor, borderRadius: 'var(--md-radius)', padding: '24px', display: 'flex', alignItems: 'center', gap: '24px', border: `2px solid ${newOffer.accentColor}` }}>
+                  <span style={{ fontSize: '3rem' }}>{newOffer.emoji}</span>
+                  <div>
+                    <div style={{ color: 'white', fontWeight: 900, fontSize: '1.2rem', fontFamily: 'var(--font-headline)' }}>{newOffer.name || 'Sin título'}</div>
+                    {newOffer.discount > 0 && <div style={{ color: newOffer.accentColor, fontWeight: 900 }}>{newOffer.discount}% EXCLUSIVO</div>}
+                  </div>
                 </div>
               </div>
 
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', marginBottom: '20px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={newOffer.active} onChange={e => setNewOffer({ ...newOffer, active: e.target.checked })} style={{ width: '18px', height: '18px' }} />
-                Activar campaña inmediatamente
-              </label>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="submit" className="btn" style={{ flex: 1 }}>🚀 Publicar Campaña</button>
-                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowOfferModal(false); setNewOffer(emptyOffer); }}>Cancelar</button>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+                <button type="submit" className="btn" style={{ flex: 2 }}>🚀 Lanzar Campaña</button>
+                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowOfferModal(false); setNewOffer(emptyOffer); }}>Descartar</button>
               </div>
             </form>
           </div>
@@ -1177,75 +1135,100 @@ const {
 
       {/* ===== USERS TAB ===== */}
       {activeTab === 'users' && (
-        <div>
-          <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.4rem' }}>Gestión de Usuarios</h2>
-          <div style={{ display: 'grid', gap: '15px' }}>
+        <div style={{ display: 'grid', gap: '48px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2rem', letterSpacing: '-1px' }}>Equipo de Gestión</h2>
+          </div>
+
+          <div style={{ display: 'grid', gap: '16px' }}>
             {users.length === 0 ? (
-              <p style={{ color: 'var(--text-muted)' }}>No hay usuarios registrados aún.</p>
+              <div style={{ padding: '80px', textAlign: 'center', background: 'var(--surface-container-low)', borderRadius: 'var(--xl-radius)' }}>
+                <p style={{ color: 'var(--on-surface-variant)' }}>No hay usuarios registrados aún.</p>
+              </div>
             ) : (
               users.map(user => {
                 const isTargetSuper = user.email === 'elchelpo2325@gmail.com';
                 return (
-                  <div key={user.id} style={{ background: 'var(--bg-card)', padding: '20px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                      <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: isTargetSuper ? '#f59e0b' : 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 700, fontSize: '1.2rem' }}>
+                  <div key={user.id} style={{ 
+                    background: 'var(--surface-container-low)', 
+                    padding: '24px 32px', 
+                    borderRadius: 'var(--lg-radius)', 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    gap: '24px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                      <div style={{ 
+                        width: '56px', 
+                        height: '56px', 
+                        borderRadius: '100px', 
+                        background: isTargetSuper ? 'var(--tertiary)' : 'var(--primary)', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        color: 'black', 
+                        fontWeight: 900, 
+                        fontSize: '1.2rem' 
+                      }}>
                         {user.name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <h4 style={{ color: 'white', margin: 0 }}>{user.name || 'Sin nombre'} {isTargetSuper && <span style={{ color: '#f59e0b', fontSize: '0.7rem' }}>(SUPER)</span>}</h4>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>{user.email}</p>
-                        <span style={{ 
-                          display: 'inline-block', 
-                          marginTop: '5px', 
-                          fontSize: '0.75rem', 
-                          padding: '2px 8px', 
-                          borderRadius: '4px', 
-                          background: user.status === 'approved' ? '#065f46' : user.status === 'rejected' ? '#881337' : '#92400e',
-                          color: 'white',
-                          fontWeight: 600
-                        }}>
-                          {user.status?.toUpperCase() || 'PENDING'}
-                        </span>
-                        <span style={{ 
-                          display: 'inline-block', 
-                          marginLeft: '8px', 
-                          fontSize: '0.75rem', 
-                          padding: '2px 8px', 
-                          borderRadius: '4px', 
-                          background: user.role === 'admin' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                          color: user.role === 'admin' ? 'black' : 'white',
-                          fontWeight: 700
-                        }}>
-                          {user.role?.toUpperCase() || 'USER'}
-                        </span>
+                        <h4 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
+                          {user.name || 'Sin nombre'} {isTargetSuper && <span style={{ color: 'var(--tertiary)', fontSize: '0.7rem', verticalAlign: 'middle', marginLeft: '8px' }}>SUPER</span>}
+                        </h4>
+                        <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', margin: '4px 0 12px' }}>{user.email}</p>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <span style={{ 
+                            fontSize: '0.65rem', 
+                            padding: '4px 12px', 
+                            borderRadius: '100px', 
+                            background: user.status === 'approved' ? 'rgba(0, 255, 135, 0.1)' : 'rgba(255, 78, 107, 0.1)', 
+                            color: user.status === 'approved' ? '#00ff87' : '#ff4e6b',
+                            fontWeight: 900,
+                            letterSpacing: '0.05em'
+                          }}>
+                            {user.status?.toUpperCase() || 'PENDING'}
+                          </span>
+                          <span style={{ 
+                            fontSize: '0.65rem', 
+                            padding: '4px 12px', 
+                            borderRadius: '100px', 
+                            background: 'var(--surface-container-highest)', 
+                            color: 'var(--on-surface)',
+                            fontWeight: 900,
+                            letterSpacing: '0.05em'
+                          }}>
+                            {user.role?.toUpperCase() || 'USER'}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                       {!isTargetSuper ? (
                         <>
-                          {/* Role Management (Only for Super Admin) */}
                           {isSuperAdmin && (
-                            <div style={{ display: 'flex', gap: '5px', marginRight: '10px', borderRight: '1px solid var(--glass-border)', paddingRight: '10px' }}>
+                            <div style={{ display: 'flex', gap: '8px', marginRight: '16px' }}>
                               {user.role === 'admin' ? (
-                                <button onClick={() => handleUpdateUserRole(user.id, 'user')} className="btn btn-outline" style={{ padding: '6px 10px', fontSize: '0.75rem' }}>Quitar Admin</button>
+                                <button onClick={() => handleUpdateUserRole(user.id, 'user')} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Quitar Admin</button>
                               ) : (
-                                <button onClick={() => handleUpdateUserRole(user.id, 'admin')} className="btn" style={{ padding: '6px 10px', fontSize: '0.75rem' }}>Hacer Admin</button>
+                                <button onClick={() => handleUpdateUserRole(user.id, 'admin')} className="btn" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Hacer Admin</button>
                               )}
                             </div>
                           )}
                           
                           {user.status !== 'approved' && (
-                            <button onClick={() => handleUpdateUserStatus(user.id, 'approved')} className="btn" style={{ padding: '8px 15px', fontSize: '0.85rem' }}>Aprobar</button>
+                            <button onClick={() => handleUpdateUserStatus(user.id, 'approved')} className="btn" style={{ padding: '8px 24px', fontSize: '0.8rem' }}>Aprobar</button>
                           )}
                           {user.status !== 'rejected' && (
-                            <button onClick={() => handleUpdateUserStatus(user.id, 'rejected')} className="btn btn-outline" style={{ padding: '8px 15px', fontSize: '0.85rem', border: '1px solid #ef4444', color: '#ef4444' }}>Rechazar</button>
+                            <button onClick={() => handleUpdateUserStatus(user.id, 'rejected')} className="btn btn-outline" style={{ padding: '8px 24px', fontSize: '0.8rem', borderColor: 'var(--error)', color: 'var(--error)' }}>Rechazar</button>
                           )}
-                          <button onClick={() => handleDeleteUser(user.id)} style={{ padding: '8px 10px', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-                            <span className="material-icons">delete</span>
+                          <button onClick={() => handleDeleteUser(user.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}>
+                            <span className="material-symbols-outlined">delete</span>
                           </button>
                         </>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>Cuenta Protegida</span>
+                        <span style={{ color: 'var(--on-surface-variant)', fontSize: '0.8rem', fontStyle: 'italic' }}>Cuenta de Sistema</span>
                       )}
                     </div>
                   </div>
@@ -1257,75 +1240,78 @@ const {
       )}
       {/* ===== CONFIG TAB ===== */}
       {activeTab === 'config' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '32px' }}>
           
           {/* PDF Reports Card */}
-          <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <span className="material-icons" style={{ fontSize: '2.5rem', color: 'var(--primary)' }}>picture_as_pdf</span>
+          <div style={{ background: 'var(--surface-container-low)', padding: '40px', borderRadius: 'var(--xl-radius)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--surface-container)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '2rem', color: 'var(--primary)' }}>picture_as_pdf</span>
+              </div>
               <div>
-                <h3 style={{ color: 'white', margin: 0 }}>Reportes de Inventario</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Genera un listado detallado de todo el stock.</p>
+                <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Reportes PDF</h3>
+                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', margin: 0 }}>Auditoría de inventario físico.</p>
               </div>
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-              Este documento incluye marca, modelo, condición física (grado), salud de batería y precio de cada unidad en el sistema.
+            <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.85rem', lineHeight: 1.6 }}>
+              Genera un documento PDF detallado con el estado actual de todo el stock, incluyendo grados, salud de batería y precios.
             </p>
-            <button className="btn" onClick={handleExportPDF} style={{ marginTop: 'auto' }}>
-              <span className="material-icons">download</span> Descargar PDF de Inventario
+            <button className="btn" onClick={handleExportPDF} style={{ marginTop: 'auto', width: '100%' }}>
+              <span className="material-symbols-outlined">download</span> 
+              Exportar Inventario
             </button>
           </div>
 
           {/* Backup Management Card */}
-          <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#f59e0b' }}>backup</span>
+          <div style={{ background: 'var(--surface-container-low)', padding: '40px', borderRadius: 'var(--xl-radius)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--surface-container)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '2rem', color: 'var(--tertiary)' }}>database</span>
+              </div>
               <div>
-                <h3 style={{ color: 'white', margin: 0 }}>Copia de Seguridad</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Resguarda toda tu información fuera de la nube.</p>
+                <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Backup & Restauración</h3>
+                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', margin: 0 }}>Gestión de datos históricos.</p>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'grid', gap: '16px' }}>
               <button 
                 className="btn btn-outline" 
                 onClick={handleExportBackup} 
-                style={{ borderColor: '#f59e0b', color: '#f59e0b' }}
+                style={{ width: '100%' }}
               >
-                <span className="material-icons">cloud_download</span> Exportar Todo (.json)
+                <span className="material-symbols-outlined">cloud_download</span> Exportar .JSON
               </button>
               
-              <div style={{ marginTop: '10px', padding: '15px', background: 'rgba(245, 158, 11, 0.05)', borderRadius: '10px', border: '1px dashed #f59e0b' }}>
-                <label style={{ ...labelStyle, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span className="material-icons" style={{ fontSize: '1rem' }}>restore</span> Restaurar Backup
+              <div style={{ marginTop: '8px', padding: '16px', background: 'var(--surface-container)', borderRadius: 'var(--md-radius)', border: '1px dashed var(--outline-variant)' }}>
+                <label style={{ color: 'var(--on-surface)', fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>settings_backup_restore</span> 
+                  Restaurar Sistema
                 </label>
                 <input 
                   type="file" 
                   accept=".json" 
                   onChange={handleImportBackup}
-                  style={{ ...inputStyle, padding: '5px', fontSize: '0.8rem', background: 'transparent' }}
+                  style={{ width: '100%', fontSize: '0.75rem', color: 'var(--on-surface-variant)' }}
                 />
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '10px' }}>
-                  ⚠️ Solo usa archivos generados previamente por este sistema.
-                </p>
               </div>
             </div>
           </div>
           
           {/* Quick Stats Summary */}
-          <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <h3 style={{ color: 'white', margin: 0 }}>Estado del Sistema</h3>
-            <div style={{ display: 'grid', gap: '10px' }}>
+          <div style={{ background: 'var(--surface-container-low)', padding: '40px', borderRadius: 'var(--xl-radius)', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>Estado del Ecosistema</h3>
+            <div style={{ display: 'grid', gap: '12px' }}>
               <div style={statLineStyle}>
-                <span style={{ color: 'var(--text-muted)' }}>Total Familias:</span>
-                <span style={{ color: 'white', fontWeight: 600 }}>{products.length}</span>
+                <span style={{ color: 'var(--on-surface-variant)', fontWeight: 600 }}>Total Familias</span>
+                <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '1.2rem' }}>{products.length}</span>
               </div>
               <div style={statLineStyle}>
-                <span style={{ color: 'var(--text-muted)' }}>Total Unidades:</span>
-                <span style={{ color: 'white', fontWeight: 600 }}>{products.reduce((acc, p) => acc + (p.stock?.length || 0), 0)}</span>
+                <span style={{ color: 'var(--on-surface-variant)', fontWeight: 600 }}>Unidades en Stock</span>
+                <span style={{ color: 'var(--tertiary)', fontWeight: 900, fontSize: '1.2rem' }}>{products.reduce((acc, p) => acc + (p.stock?.length || 0), 0)}</span>
               </div>
               <div style={statLineStyle}>
-                <span style={{ color: 'var(--text-muted)' }}>Campañas Activas:</span>
-                <span style={{ color: 'white', fontWeight: 600 }}>{offers.filter(o => o.active).length}</span>
+                <span style={{ color: 'var(--on-surface-variant)', fontWeight: 600 }}>Campañas Activas</span>
+                <span style={{ color: 'var(--secondary)', fontWeight: 900, fontSize: '1.2rem' }}>{offers.filter(o => o.active).length}</span>
               </div>
             </div>
           </div>
