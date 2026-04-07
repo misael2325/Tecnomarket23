@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, doc, setDoc, deleteDoc, onSnapshot } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch } from "firebase/firestore";
 import { db } from "../firebase";
 
 const InventoryContext = createContext();
@@ -164,12 +164,44 @@ export function InventoryProvider({ children }) {
     } catch (e) { console.error("Error eliminando oferta: ", e); }
   };
 
+  const restoreBackup = async (backupData) => {
+    try {
+      const batch = writeBatch(db);
+
+      // Restore Settings
+      if (backupData.settings) {
+        batch.set(doc(db, "settings", "global"), backupData.settings);
+      }
+
+      // Restore Categories (Products)
+      if (backupData.categories && Array.isArray(backupData.categories)) {
+        backupData.categories.forEach(cat => {
+          batch.set(doc(db, "categories", cat.id), cat);
+        });
+      }
+
+      // Restore Offers
+      if (backupData.offers && Array.isArray(backupData.offers)) {
+        backupData.offers.forEach(off => {
+          batch.set(doc(db, "offers", off.id), off);
+        });
+      }
+
+      await batch.commit();
+      return true;
+    } catch (e) {
+      console.error("Error al restaurar backup: ", e);
+      return false;
+    }
+  };
+
   return (
     <InventoryContext.Provider value={{ 
       products, addProduct, updateProduct, deleteProduct,
       settings, updateSettings, loading,
       offers, addOffer, updateOffer, deleteOffer,
-      departments, updateDepartments
+      departments, updateDepartments,
+      restoreBackup
     }}>
       {children}
     </InventoryContext.Provider>

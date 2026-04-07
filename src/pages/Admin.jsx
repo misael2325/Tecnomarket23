@@ -4,6 +4,8 @@ import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 const OFFER_TEMPLATES = [
   { name: 'Black Friday', emoji: '🖤', discount: 30, color: '#111111', accentColor: '#f59e0b' },
@@ -43,7 +45,7 @@ const {
     products, addProduct, deleteProduct, updateProduct, 
     settings, updateSettings,
     offers, addOffer, updateOffer, deleteOffer,
-    departments, updateDepartments
+    departments, updateDepartments, restoreBackup
   } = useInventory();
   
   const { isSuperAdmin } = useAuth();
@@ -291,6 +293,95 @@ const {
     } catch (e) { console.error("Error actualizando rol:", e); }
   };
 
+  // --- CONFIG / BACKUP HANDLERS ---
+  const handleExportBackup = () => {
+    const backupData = {
+      categories: products,
+      settings: settings,
+      offers: offers,
+      exportDate: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup_tecnomarket_${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    alert('✅ Backup exportado correctamente.');
+  };
+
+  const handleImportBackup = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!window.confirm('🚨 ¡AVISO CRÍTICO!\n\nRestaurar un backup sobrescribirá cualquier dato con el mismo ID en el sistema. ¿Estás absolutamente seguro de continuar?')) {
+      e.target.value = ''; // Reset input
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        const success = await restoreBackup(data);
+        if (success) {
+          alert('✅ Sistema restaurado con éxito.');
+        } else {
+          alert('❌ Hubo un error al restaurar los datos.');
+        }
+      } catch (err) {
+        alert('❌ Error al leer el archivo de backup. Asegúrate de que sea un JSON válido.');
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset input
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const today = new Date().toLocaleDateString();
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42); // slate-900 icon
+    doc.text(settings.storeName || 'TecnoMarket', 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Reporte de Inventario de Todo el Sistema - ${today}`, 14, 30);
+    
+    const tableData = [];
+    products.forEach(p => {
+      if (p.stock && p.stock.length > 0) {
+        p.stock.forEach(item => {
+          tableData.push([
+            p.brand,
+            p.model,
+            item.specificModel,
+            `Grado ${item.grade}`,
+            item.battery > 0 ? `${item.battery}%` : 'N/A',
+            `RD$ ${item.price.toLocaleString()}`
+          ]);
+        });
+      }
+    });
+
+    doc.autoTable({
+      startY: 35,
+      head: [['Marca', 'Familia', 'Modelo Exacto', 'Grado', 'Batería', 'Precio']],
+      body: tableData,
+      headStyles: { fillColor: [0, 240, 255], textColor: [0, 0, 0] },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      styles: { fontSize: 8 },
+      margin: { top: 35 },
+    });
+
+    doc.save(`inventario_${today.replace(/\//g, '-')}.pdf`);
+  };
+
   // ======  STYLES  ======
   const inputStyle = { width: '100%', padding: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: 'white', boxSizing: 'border-box' };
   const labelStyle = { display: 'block', color: 'var(--text-muted)', marginBottom: '6px', fontSize: '0.9rem' };
@@ -315,7 +406,8 @@ const {
           { key: 'stock',    label: '📦 Celulares Físicos' },
           { key: 'offers',   label: '🎉 Campañas' },
           { key: 'users',    label: '👥 Usuarios' },
-        ].filter(tab => tab.key !== 'users' || isSuperAdmin).map(tab => (
+          { key: 'config',   label: '⚙️ Configuración' },
+        ].filter(tab => (tab.key !== 'users' && tab.key !== 'config') || isSuperAdmin).map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
             className={`btn ${activeTab !== tab.key ? 'btn-outline' : ''}`}
             style={{ borderRadius: '8px', border: activeTab === tab.key ? 'none' : '1px solid var(--primary)' }}>
@@ -1021,6 +1113,89 @@ const {
           </div>
         </div>
       )}
+      {/* ===== CONFIG TAB ===== */}
+      {activeTab === 'config' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
+          
+          {/* PDF Reports Card */}
+          <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <span className="material-icons" style={{ fontSize: '2.5rem', color: 'var(--primary)' }}>picture_as_pdf</span>
+              <div>
+                <h3 style={{ color: 'white', margin: 0 }}>Reportes de Inventario</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Genera un listado detallado de todo el stock.</p>
+              </div>
+            </div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              Este documento incluye marca, modelo, condición física (grado), salud de batería y precio de cada unidad en el sistema.
+            </p>
+            <button className="btn" onClick={handleExportPDF} style={{ marginTop: 'auto' }}>
+              <span className="material-icons">download</span> Descargar PDF de Inventario
+            </button>
+          </div>
+
+          {/* Backup Management Card */}
+          <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <span className="material-icons" style={{ fontSize: '2.5rem', color: '#f59e0b' }}>backup</span>
+              <div>
+                <h3 style={{ color: 'white', margin: 0 }}>Copia de Seguridad</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>Resguarda toda tu información fuera de la nube.</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button 
+                className="btn btn-outline" 
+                onClick={handleExportBackup} 
+                style={{ borderColor: '#f59e0b', color: '#f59e0b' }}
+              >
+                <span className="material-icons">cloud_download</span> Exportar Todo (.json)
+              </button>
+              
+              <div style={{ marginTop: '10px', padding: '15px', background: 'rgba(245, 158, 11, 0.05)', borderRadius: '10px', border: '1px dashed #f59e0b' }}>
+                <label style={{ ...labelStyle, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span className="material-icons" style={{ fontSize: '1rem' }}>restore</span> Restaurar Backup
+                </label>
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  onChange={handleImportBackup}
+                  style={{ ...inputStyle, padding: '5px', fontSize: '0.8rem', background: 'transparent' }}
+                />
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '10px' }}>
+                  ⚠️ Solo usa archivos generados previamente por este sistema.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Quick Stats Summary */}
+          <div style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '15px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <h3 style={{ color: 'white', margin: 0 }}>Estado del Sistema</h3>
+            <div style={{ display: 'grid', gap: '10px' }}>
+              <div style={statLineStyle}>
+                <span style={{ color: 'var(--text-muted)' }}>Total Familias:</span>
+                <span style={{ color: 'white', fontWeight: 600 }}>{products.length}</span>
+              </div>
+              <div style={statLineStyle}>
+                <span style={{ color: 'var(--text-muted)' }}>Total Unidades:</span>
+                <span style={{ color: 'white', fontWeight: 600 }}>{products.reduce((acc, p) => acc + (p.stock?.length || 0), 0)}</span>
+              </div>
+              <div style={statLineStyle}>
+                <span style={{ color: 'var(--text-muted)' }}>Campañas Activas:</span>
+                <span style={{ color: 'white', fontWeight: 600 }}>{offers.filter(o => o.active).length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+const statLineStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  padding: '10px 0',
+  borderBottom: '1px solid rgba(255,255,255,0.05)'
+};
