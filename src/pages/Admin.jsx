@@ -674,8 +674,8 @@ const {
             <span className="material-icons">add</span> Crear Nueva Marca o Categoría
           </button>
           
-          {/* FAMILIES / CATEGORIES SECTION */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '40px' }}>
+            {/* MAIN CATEGORIES BY DEPARTMENT */}
             {departments.map(dept => {
               const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
               if (deptProducts.length === 0) return null;
@@ -720,6 +720,54 @@ const {
                 </div>
               );
             })}
+            {/* FALLBACK: UNCLASSIFIED FAMILIES */}
+            {(() => {
+                const classifiedIds = new Set();
+                departments.forEach(dept => {
+                    products.filter(p => (p.department || 'Celulares') === dept).forEach(p => classifiedIds.add(p.id));
+                });
+                const unclassified = products.filter(p => !classifiedIds.has(p.id));
+                
+                if (unclassified.length === 0) return null;
+                
+                return (
+                  <div style={{ marginTop: '40px', borderTop: '2px dashed var(--glass-border)', paddingTop: '40px' }}>
+                    <h3 style={{ color: '#94a3b8', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span className="material-icons">help_outline</span>
+                      Otros / Equipos sin Clasificar
+                      <span style={{ fontSize: '0.8rem', fontWeight: 'normal', fontStyle: 'italic' }}>(Departamentos no encontrados o antiguos)</span>
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                      {unclassified.map(product => (
+                        <div key={product.id} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--glass-border)', borderRadius: '15px', overflow: 'hidden', display: 'flex', flexDirection: 'column', opacity: 0.8 }}>
+                          <div style={{ height: '140px', background: '#111', overflow: 'hidden', position: 'relative' }}>
+                            <img src={product.image} alt={product.model} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', gap: '5px' }}>
+                              <button onClick={() => handleEditProduct(product)} style={{ background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                                <span className="material-icons" style={{ fontSize: '1.2rem' }}>edit</span>
+                              </button>
+                              <button onClick={() => deleteProduct(product.id)} style={{ background: 'rgba(255,0,0,0.6)', color: 'white', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                                <span className="material-icons" style={{ fontSize: '1.2rem' }}>delete</span>
+                              </button>
+                            </div>
+                          </div>
+                          <div style={{ padding: '15px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <h4 style={{ color: 'white', margin: '0 0 5px 0' }}>{product.model}</h4>
+                                <span style={{ fontSize: '0.7rem', background: '#334155', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>{product.department || 'Sin Dept.'}</span>
+                            </div>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', height: '40px', overflow: 'hidden' }}>{product.description}</p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+                              <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Stock: {product.stock.length}</span>
+                              <button onClick={() => { setSelectedProduct(product.id); setShowStockModal(true); }} className="btn" style={{ padding: '5px 12px', fontSize: '0.8rem' }}>Gestionar Stock</button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+            })()}
           </div>
         </div>
       )}
@@ -735,6 +783,7 @@ const {
                 <span className="material-icons">add</span> Ingresar Equipo Nuevo
               </button>
               <div style={{ display: 'grid', gap: '40px' }}>
+                {/* MAIN STOCK LIST BY DEPARTMENT */}
                 {departments.map(dept => {
                   const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
                   if (deptProducts.length === 0) return null;
@@ -786,6 +835,53 @@ const {
                     </div>
                   );
                 })}
+                {/* FALLBACK: UNCLASSIFIED STOCK */}
+                {(() => {
+                    const classifiedIds = new Set();
+                    departments.forEach(dept => {
+                        products.filter(p => (p.department || 'Celulares') === dept).forEach(p => classifiedIds.add(p.id));
+                    });
+                    const unclassified = products.filter(p => !classifiedIds.has(p.id));
+
+                    if (unclassified.length === 0) return null;
+
+                    return (
+                        <div style={{ marginTop: '40px', borderTop: '2px dashed var(--glass-border)', paddingTop: '40px' }}>
+                            <h3 style={{ color: '#94a3b8', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span className="material-icons">help_outline</span>
+                                Otros Equipos (Sin Categoría Detectada)
+                            </h3>
+                            <div style={{ display: 'grid', gap: '20px' }}>
+                                {unclassified.map(product => (
+                                    <div key={product.id} className="device-list" style={{ marginTop: 0, background: 'rgba(255,255,255,0.01)', borderRadius: '15px', border: '1px solid var(--glass-border)', overflow: 'hidden', opacity: 0.8 }}>
+                                        <div style={{ padding: '15px 20px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                            <img src={product.image} style={{ width: '35px', height: '35px', objectFit: 'contain', borderRadius: '6px', background: '#111' }} alt={product.model} />
+                                            <div>
+                                                <h4 style={{ color: 'white', margin: 0, fontSize: '1.1rem' }}>{product.brand} - {product.model}</h4>
+                                                <span className="stock-badge" style={{ marginLeft: 0, background: '#334155', color: 'white', padding: '1px 6px', borderRadius: '4px', fontSize: '0.75em' }}>Dept: {product.department || 'Sin asignar'}</span>
+                                            </div>
+                                        </div>
+                                        {product.stock.length > 0 && product.stock.map(item => (
+                                            <div key={item.id} className="device-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', borderBottom: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '10px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                    <span style={{ color: 'white', fontWeight: 600, fontSize: '0.95rem' }}>{item.specificModel}</span>
+                                                    <span className={`device-grade grade-${item.grade.toLowerCase()}`} style={{ fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', border: '1px solid currentColor', fontSize: '0.75rem' }}>Grado {item.grade}</span>
+                                                    <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Bat: {item.battery}%</span>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                                    <span style={{ fontWeight: 600, color: 'white', fontSize: '0.95rem' }}>RD$ {item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}</span>
+                                                    <button className="action-btn delete-btn" onClick={() => handleDeleteStock(product.id, item.id)} title="Vendido/Eliminar" style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                                                        <span className="material-icons" style={{ color: '#ef4444', fontSize: '1.2rem' }}>delete</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })()}
               </div>
             </>
           )}
