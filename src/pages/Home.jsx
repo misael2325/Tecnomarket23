@@ -78,7 +78,7 @@ export default function Home() {
           </p>
           <div style={{ display: 'flex', gap: '24px' }}>
             <Link to="/catalog" className="btn">
-              Explorar Colección
+              Ir al Catálogo
               <span className="material-symbols-outlined" style={{ fontSize: '1.4rem' }}>north_east</span>
             </Link>
             {primaryOffer && (

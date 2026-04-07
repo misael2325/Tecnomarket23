@@ -517,3 +517,102 @@ footer {
   color: var(--on-primary);
   transform: translateY(-4px) rotate(8deg);
 }
+
+/* ==========================================================================
+   MOBILE OPTIMIZATIONS (< 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+  :root {
+    --xl-radius: 1rem;
+  }
+
+  nav {
+    padding: 1rem 4%;
+  }
+
+  .nav-brand {
+    font-size: 1.3rem;
+  }
+
+  .nav-links {
+    display: none; /* Keep nav minimal on mobile */
+  }
+
+  .section {
+    padding: 64px 5%;
+  }
+
+  .hero {
+    padding: 0 5%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 3.5rem;
+    letter-spacing: -2px;
+  }
+
+  .hero p {
+    font-size: 1.1rem;
+  }
+
+  .section-title {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .section-title h2 {
+    font-size: 2.5rem;
+  }
+
+  /* Horizontal Scroll for Families */
+  .productos-container {
+    margin: 0 -5%;
+    padding: 0 5%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+  }
+
+  .productos-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .productos {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 16px;
+    padding-bottom: 24px;
+  }
+
+  .card {
+    min-width: 280px;
+    flex-shrink: 0;
+  }
+
+  .card-info {
+    padding: 24px;
+  }
+
+  .card-title {
+    font-size: 1.3rem;
+  }
+
+  .card-price {
+    font-size: 1.5rem;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    text-align: center;
+  }
+
+  .footer-content > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}

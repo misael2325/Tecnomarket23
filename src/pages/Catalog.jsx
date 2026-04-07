@@ -146,46 +146,57 @@ export default function Catalog() {
                 return (
                   <div key={dept} style={{ animation: 'fadeUp 0.8s ease backwards' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '40px' }}>
-                      <h3 style={{ 
-                        fontFamily: 'var(--font-headline)',
-                        fontSize: '2rem', 
-                        fontWeight: 800,
-                        letterSpacing: '-1.5px',
-                        margin: 0
+                      <div style={{ 
+                        background: 'var(--primary)', 
+                        padding: '12px 32px', 
+                        borderRadius: '0 100px 100px 0', 
+                        marginLeft: '-8%',
+                        boxShadow: '20px 0 60px rgba(179, 197, 255, 0.2)'
                       }}>
-                        {dept}
-                      </h3>
+                        <h3 style={{ 
+                          fontFamily: 'var(--font-headline)',
+                          fontSize: '1.8rem', 
+                          fontWeight: 900,
+                          letterSpacing: '-1px',
+                          margin: 0,
+                          color: 'var(--on-primary)'
+                        }}>
+                          {dept}
+                        </h3>
+                      </div>
                       <div style={{ height: '1px', flex: 1, background: 'var(--outline-variant)' }}></div>
-                      <span className="stock-badge">{deptProducts.length} Equipos</span>
+                      <span className="stock-badge">{deptProducts.length} Dispositivos</span>
                     </div>
                     
-                    <div className="productos">
-                      {deptProducts.map(product => {
-                        const stockItems = product.stock || [];
-                        const minPrice = stockItems.length > 0
-                          ? Math.min(...stockItems.map(s => Number(s.price) || 0))
-                          : (Number(product.basePrice) || 0);
+                    <div className="productos-container">
+                      <div className="productos">
+                        {deptProducts.map(product => {
+                          const stockItems = product.stock || [];
+                          const minPrice = stockItems.length > 0
+                            ? Math.min(...stockItems.map(s => Number(s.price) || 0))
+                            : (Number(product.basePrice) || 0);
 
-                        return (
-                          <Link to={`/device/${product.id}`} key={product.id} className="card">
-                            <div className="card-img-wrapper">
-                              <img src={product.image} alt={product.model} />
-                            </div>
-                            <div className="card-info">
-                              <h3 className="card-title">{product.model}</h3>
-                              <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.95rem', marginBottom: '24px', flex: 1 }}>
-                                {product.description}
-                              </p>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div className="card-price">
-                                  {stockItems.length > 0 ? `RD$ ${minPrice.toLocaleString()}` : 'Agotado'}
-                                </div>
-                                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>arrow_forward</span>
+                          return (
+                            <Link to={`/device/${product.id}`} key={product.id} className="card">
+                              <div className="card-img-wrapper">
+                                <img src={product.image} alt={product.model} />
                               </div>
-                            </div>
-                          </Link>
-                        );
-                      })}
+                              <div className="card-info">
+                                <h3 className="card-title">{product.model}</h3>
+                                <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.95rem', marginBottom: '24px', lineHeight: 1.5 }}>
+                                  {product.description}
+                                </p>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                                  <div className="card-price">
+                                    {stockItems.length > 0 ? `RD$ ${minPrice.toLocaleString()}` : 'Agotado'}
+                                  </div>
+                                  <span className="material-symbols-outlined" style={{ color: 'var(--primary)', fontWeight: 900 }}>arrow_forward</span>
+                                </div>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );
