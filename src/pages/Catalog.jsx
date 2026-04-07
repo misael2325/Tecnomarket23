@@ -3,19 +3,24 @@ import { Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 
-const DEPARTMENTS = [
-  'Celulares',
-  'Laptops & Computadoras',
-  'Tablets',
-  'Smartwatches',
-  'TV & Entretenimiento',
-  'Accesorios'
-];
 
 export default function Catalog() {
   const { products = [], settings = {}, loading } = useInventory();
   const { logout } = useAuth();
   const [selectedDept, setSelectedDept] = React.useState('Todos');
+
+  // Dynamic Departments
+  const activeDepts = React.useMemo(() => {
+    const fromSettings = settings.departments || [];
+    const fromProducts = Array.from(new Set(products.map(p => p.department || 'Celulares')));
+    
+    // Combine and ensure only those with products are shown (unless it's in settings but empty, maybe?)
+    // Actually, for user experience, let's show all mentioned in either, but filter to those with products mostly.
+    const combined = Array.from(new Set([...fromSettings, ...fromProducts]));
+    
+    // Sort them (optional) or keep settings order first
+    return combined.filter(dept => products.some(p => (p.department || 'Celulares') === dept));
+  }, [products, settings.departments]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -96,9 +101,7 @@ export default function Catalog() {
         >
           Todos
         </button>
-        {DEPARTMENTS.map(dept => {
-          const hasProducts = products.some(p => (p.department || 'Celulares') === dept);
-          if (!hasProducts) return null;
+        {activeDepts.map(dept => {
           const isActive = selectedDept === dept;
           return (
             <button 
@@ -138,7 +141,7 @@ export default function Catalog() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '50px', maxWidth: '1200px', margin: '0 auto' }}>
-            {DEPARTMENTS
+            {activeDepts
               .filter(d => selectedDept === 'Todos' || d === selectedDept)
               .map(dept => {
                 const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
