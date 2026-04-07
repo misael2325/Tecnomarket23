@@ -19,11 +19,11 @@ const defaultSettings = {
   stat2Label: 'Garantía Full',
   aboutImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
   footerDesc: 'Centro de importación y distribución de dispositivos móviles, inteligente y servicio autorizado.',
-  contactAddress: 'SAILIN TECNO SMARTPHONE 8QQ7+9R, Arroyo Hondo 94000',
+  contactAddress: 'STS | SAILIN TECNO SMARTPHONE 8QQ7+9R, Arroyo Hondo 94000',
   contactPhone: '+1 (829) 424-1236',
-  contactEmail: 'ventas@capitalcelular.com',
-  socialInstagram: 'https://instagram.com/capitalcelular',
-  socialFacebook: 'https://facebook.com/capitalcelular',
+  contactEmail: 'ventas@sts.com.do',
+  socialInstagram: 'https://instagram.com/sailintecno',
+  socialFacebook: 'https://facebook.com/sailintecno',
   heroImage: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
   whyUsSectionImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
   instagramPhotos: [
@@ -56,8 +56,8 @@ export function InventoryProvider({ children }) {
     const unsubSettings = onSnapshot(doc(db, "settings", "global"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.storeName === 'MovilTech' || data.storeName === 'Capital Celular' || data.heroTitle === 'La Capital de los') {
-          console.log("Migración de marca: Actualizando a Sailin Tecno...");
+        if (data.storeName === 'MovilTech' || data.storeName === 'Capital Celular' || data.storeName === 'Sailin Tecno SmartPhone' || data.heroTitle === 'La Capital de los') {
+          console.log("Migración de marca: Actualizando a STS | SAILIN TECNO...");
           setDoc(doc(db, "settings", "global"), defaultSettings, { merge: true });
         }
         setSettings(prev => ({ 

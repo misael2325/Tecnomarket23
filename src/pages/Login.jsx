@@ -66,7 +66,7 @@ export default function Login() {
         <div style={{ marginBottom: '30px' }}>
           <span className="material-icons" style={{ fontSize: '3rem', color: 'var(--primary)', marginBottom: '10px' }}>lock</span>
           <h2 style={{ color: 'white', margin: 0, fontSize: '1.8rem' }}>Bienvenido</h2>
-          <p style={{ color: 'var(--text-muted)', marginTop: '5px' }}>Ingresa a tu cuenta de Capital Celular</p>
+          <p style={{ color: 'var(--text-muted)', marginTop: '5px' }}>Ingresa a tu cuenta de STS | SAILIN TECNO</p>
         </div>
 
         {error && <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '12px', borderRadius: '12px', marginBottom: '20px', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>{error}</div>}
