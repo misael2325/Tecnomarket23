@@ -50,7 +50,14 @@ export default function Home() {
           <Link to="/catalog" className="btn">
             Ir al Catálogo <span className="material-symbols-outlined">arrow_forward</span>
           </Link>
-          <a href="#about" className="btn btn-outline">
+          <a 
+            href="#about" 
+            className="btn btn-outline"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
             Saber Más
           </a>
         </div>

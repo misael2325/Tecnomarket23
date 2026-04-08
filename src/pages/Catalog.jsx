@@ -29,11 +29,11 @@ export default function Catalog() {
 
   // Sync state with URL params if someone clicks a category link
   useEffect(() => {
-    const qDept = new URLSearchParams(location.search).get('dept');
-    if (qDept && qDept !== selectedDept) {
+    const qDept = new URLSearchParams(location.search).get('dept') || 'Todos';
+    if (qDept !== selectedDept) {
       setSelectedDept(qDept);
     }
-  }, [location.search]);
+  }, [location.search, selectedDept]);
 
   const handleSelectDept = (dept) => {
     setSelectedDept(dept);
