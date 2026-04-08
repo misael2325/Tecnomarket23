@@ -8,9 +8,17 @@ export default function ProductDetails() {
   
   const product = products.find(p => p.id === id);
 
+  const activeDepts = React.useMemo(() => {
+    const fromSettings = settings.departments || [];
+    const fromProducts = Array.from(new Set(products.map(p => p.department || 'Celulares')));
+    return Array.from(new Set([...fromSettings, ...fromProducts])).filter(dept => 
+      products.some(p => (p.department || 'Celulares') === dept)
+    );
+  }, [products, settings.departments]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [id]);
 
   if (loading) {
     return <div style={{ minHeight: '100vh', background: 'var(--background)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>Cargando detalles...</div>;
@@ -175,12 +183,12 @@ export default function ProductDetails() {
             <div>
               <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', marginBottom: '20px' }}>Accesos Rápidos</h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>SIM Card</Link>
-                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Teléfonos móviles</Link>
-                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Seguros iPhone</Link>
-                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Accesorios</Link>
-                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Venta relojes</Link>
-                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Ofertas Destacadas</Link>
+                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>✨ Ver todo</Link>
+                {activeDepts.map(dept => (
+                  <Link key={dept} to={`/catalog?dept=${encodeURIComponent(dept)}`} style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {dept}
+                  </Link>
+                ))}
               </div>
             </div>
 

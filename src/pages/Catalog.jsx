@@ -1,12 +1,18 @@
 import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function Catalog() {
   const { products = [], settings = {}, loading } = useInventory();
   const { logout } = useAuth();
-  const [selectedDept, setSelectedDept] = React.useState('Todos');
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  const queryParams = new URLSearchParams(location.search);
+  const initialDept = queryParams.get('dept') || 'Todos';
+  
+  const [selectedDept, setSelectedDept] = React.useState(initialDept);
 
   const activeDepts = React.useMemo(() => {
     const fromSettings = settings.departments || [];
@@ -17,8 +23,22 @@ export default function Catalog() {
   }, [products, settings.departments]);
 
   useEffect(() => {
+    // Scroll to top when changing department inside component
     window.scrollTo(0, 0);
   }, [selectedDept]);
+
+  // Sync state with URL params if someone clicks a category link
+  useEffect(() => {
+    const qDept = new URLSearchParams(location.search).get('dept');
+    if (qDept && qDept !== selectedDept) {
+      setSelectedDept(qDept);
+    }
+  }, [location.search]);
+
+  const handleSelectDept = (dept) => {
+    setSelectedDept(dept);
+    navigate(dept === 'Todos' ? '/catalog' : `/catalog?dept=${encodeURIComponent(dept)}`);
+  };
 
   const rawPhone = (settings.contactPhone || '').replace(/\D/g, '');
   const waLink = `https://wa.me/${rawPhone}?text=${encodeURIComponent('Hola, me interesa uno de sus equipos disponibles 📱')}`;
@@ -66,7 +86,7 @@ export default function Catalog() {
         borderBottom: '1px solid var(--outline-variant)'
       }}>
         <button 
-          onClick={() => setSelectedDept('Todos')}
+          onClick={() => handleSelectDept('Todos')}
           className={selectedDept === 'Todos' ? 'btn' : 'btn btn-outline'}
           style={{ padding: '8px 20px', fontSize: '0.8rem', whiteSpace: 'nowrap', borderRadius: '100px' }}
         >
@@ -75,7 +95,7 @@ export default function Catalog() {
         {activeDepts.map(dept => (
           <button 
             key={dept} 
-            onClick={() => setSelectedDept(dept)}
+            onClick={() => handleSelectDept(dept)}
             className={selectedDept === dept ? 'btn' : 'btn btn-outline'}
             style={{ padding: '8px 20px', fontSize: '0.8rem', whiteSpace: 'nowrap', borderRadius: '100px' }}
           >
