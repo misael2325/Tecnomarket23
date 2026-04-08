@@ -22,8 +22,8 @@ const defaultSettings = {
   contactAddress: 'STS | SAILIN TECNO SMARTPHONE 8QQ7+9R, Arroyo Hondo 94000',
   contactPhone: '+1 (829) 424-1236',
   contactEmail: 'ventas@sts.com.do',
-  socialInstagram: 'https://instagram.com/sailintecno',
-  socialFacebook: 'https://facebook.com/sailintecno',
+  socialInstagram: 'https://www.instagram.com/sailin_tecno/',
+  socialFacebook: 'https://www.facebook.com/reyes.innovation.3',
   heroImage: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
   whyUsSectionImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
   instagramPhotos: [
@@ -56,8 +56,8 @@ export function InventoryProvider({ children }) {
     const unsubSettings = onSnapshot(doc(db, "settings", "global"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.storeName === 'MovilTech' || data.storeName === 'Capital Celular' || data.storeName === 'Sailin Tecno SmartPhone') {
-          console.log("Migración de marca detectada: Actualizando metadatos base...");
+        if (data.storeName === 'MovilTech' || data.storeName === 'Capital Celular' || data.storeName === 'Sailin Tecno SmartPhone' || data.socialFacebook === 'https://facebook.com/sailintecno') {
+          console.log("Migración de marca o redes detectada: Actualizando metadatos base...");
           // Solo actualizamos lo NO estructural para no borrar departamentos del usuario
           const { departments, ...restDefault } = defaultSettings;
           setDoc(doc(db, "settings", "global"), restDefault, { merge: true });
