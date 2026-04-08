@@ -111,8 +111,16 @@ export default function Home() {
             <p style={{ color: 'var(--on-surface-variant)', maxWidth: '400px' }}>{settings.footerDesc || 'Entregando la mejor tecnología de alta gama.'}</p>
           </div>
           <div>
+            <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Horarios</h4>
+            <div style={{ fontSize: '0.9rem', color: 'var(--on-surface-variant)' }}>
+              <p style={{ marginBottom: '12px' }}><strong style={{ color: 'var(--on-surface)' }}>Lunes - Viernes</strong><br/>9:00 a.m. a 6:30 p.m.</p>
+              <p style={{ marginBottom: '12px' }}><strong style={{ color: 'var(--on-surface)' }}>Sábados</strong><br/>No laboramos</p>
+              <p><strong style={{ color: 'var(--on-surface)' }}>Domingos</strong><br/>9:30 a.m. a 1:00 p.m.</p>
+            </div>
+          </div>
+          <div>
             <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Ubicación</h4>
-            <p style={{ fontSize: '0.9rem', marginBottom: '8px' }}>{settings.contactAddress}</p>
+            <p style={{ fontSize: '0.9rem', marginBottom: '8px', color: 'var(--on-surface-variant)' }}>{settings.contactAddress}</p>
             <p style={{ fontWeight: 800 }}>{settings.contactPhone}</p>
           </div>
           <div>

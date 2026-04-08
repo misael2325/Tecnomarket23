@@ -151,6 +151,67 @@ export default function ProductDetails() {
             )}
           </div>
         </section>
+
+        {/* EXTRA INFO: GRADES, QUICK LINKS, CONTACT */}
+        <section className="section" style={{ borderTop: '1px solid var(--outline-variant)', paddingTop: '40px', paddingBottom: '60px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '48px' }}>
+            
+            {/* Grades Info */}
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>info</span>
+                Condiciones de Equipos
+              </h3>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '12px', fontSize: '0.9rem', color: 'var(--on-surface-variant)' }}>
+                <li><strong style={{ color: 'var(--on-surface)' }}>Nuevo:</strong> Equipo nuevo en caja.</li>
+                <li><strong style={{ color: 'var(--on-surface)' }}>Como Nuevo:</strong> Equipo en perfecto estado físico.</li>
+                <li><strong style={{ color: 'var(--on-surface)' }}>Grado A:</strong> Muy buen estado físico, leves señales de uso, 100% funcional.</li>
+                <li><strong style={{ color: 'var(--on-surface)' }}>Grado A-:</strong> Buen estado, detalles estéticos moderados, 100% funcional.</li>
+                <li><strong style={{ color: 'var(--on-surface)' }}>Outlet:</strong> Funcional con rebaja por liquidación (Reparado).</li>
+              </ul>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', marginBottom: '20px' }}>Accesos Rápidos</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>SIM Card</Link>
+                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Teléfonos móviles</Link>
+                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Seguros iPhone</Link>
+                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Accesorios</Link>
+                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Venta relojes</Link>
+                <Link to="/catalog" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.95rem' }}>Ofertas Destacadas</Link>
+              </div>
+            </div>
+
+            {/* Contact & Share */}
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.2rem', marginBottom: '20px' }}>Contáctanos</h3>
+              <p style={{ fontSize: '0.9rem', color: 'var(--on-surface-variant)', marginBottom: '20px', lineHeight: 1.5 }}>
+                Te atendemos por WhatsApp y puedes hacer tu pedido aquí mismo.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <a href={waBase} target="_blank" rel="noopener noreferrer" className="btn" style={{ justifyContent: 'center' }}>
+                  <span className="material-symbols-outlined">forum</span>
+                  WhatsApp
+                </a>
+                <button 
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({ title: product.model, url: window.location.href });
+                    } else {
+                      navigator.clipboard.writeText(window.location.href);
+                      alert('Enlace copiado al portapapeles');
+                    }
+                  }}
+                  className="btn btn-outline" style={{ justifyContent: 'center' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>share</span>
+                  Comparte esta página
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </>
   );
