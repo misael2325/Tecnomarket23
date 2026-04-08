@@ -71,6 +71,10 @@ const {
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [newOffer, setNewOffer] = useState(emptyOffer);
 
+  // --- Price Editing State ---
+  // key: `${productId}-${stockId}` => edited price string
+  const [editingPrices, setEditingPrices] = useState({});
+
   // --- Users Tab State ---
   const [users, setUsers] = useState([]);
 
@@ -229,6 +233,18 @@ const {
     const product = products.find(p => p.id === productId);
     const updated = { ...product, stock: product.stock.filter(s => s.id !== stockId) };
     updateProduct(updated);
+  };
+
+  const handleSavePrice = (productId, stockId) => {
+    const product = products.find(p => p.id === productId);
+    const key = `${productId}-${stockId}`;
+    const newPrice = Number(editingPrices[key]);
+    if (!newPrice || isNaN(newPrice)) { alert('Ingresa un precio válido.'); return; }
+    const updatedStock = product.stock.map(s =>
+      s.id === stockId ? { ...s, price: newPrice } : s
+    );
+    updateProduct({ ...product, stock: updatedStock });
+    setEditingPrices(prev => { const n = { ...prev }; delete n[key]; return n; });
   };
 
   // ------ OFFERS HANDLERS ------
@@ -793,8 +809,45 @@ const {
                                           {item.grade}
                                         </div>
                                       </div>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                                        <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        {/* INLINE PRICE EDITOR */}
+                                        {editingPrices[`${product.id}-${item.id}`] !== undefined ? (
+                                          <>
+                                            <span style={{ color: 'var(--on-surface-variant)', fontSize: '0.85rem', fontWeight: 700 }}>RD$</span>
+                                            <input
+                                              type="number"
+                                              value={editingPrices[`${product.id}-${item.id}`]}
+                                              onChange={e => setEditingPrices(prev => ({ ...prev, [`${product.id}-${item.id}`]: e.target.value }))}
+                                              className="form-input"
+                                              style={{ width: '130px', margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
+                                              autoFocus
+                                              onKeyDown={e => { if (e.key === 'Enter') handleSavePrice(product.id, item.id); if (e.key === 'Escape') setEditingPrices(prev => { const n={...prev}; delete n[`${product.id}-${item.id}`]; return n; }); }}
+                                            />
+                                            <button
+                                              onClick={() => handleSavePrice(product.id, item.id)}
+                                              style={{ background: 'var(--primary)', color: 'var(--on-primary)', border: 'none', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                            >
+                                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>check</span>
+                                            </button>
+                                            <button
+                                              onClick={() => setEditingPrices(prev => { const n={...prev}; delete n[`${product.id}-${item.id}`]; return n; })}
+                                              style={{ background: 'var(--surface-container-high)', color: 'var(--on-surface)', border: 'none', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                            >
+                                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>close</span>
+                                            </button>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
+                                            <button
+                                              onClick={() => setEditingPrices(prev => ({ ...prev, [`${product.id}-${item.id}`]: item.price }))}
+                                              style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', display: 'flex', padding: '4px' }}
+                                              title="Editar precio"
+                                            >
+                                              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>edit</span>
+                                            </button>
+                                          </>
+                                        )}
                                         <button onClick={() => handleDeleteStock(product.id, item.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', display: 'flex' }}>
                                           <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
                                         </button>
