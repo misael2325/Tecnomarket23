@@ -73,8 +73,8 @@ const {
   const [newOffer, setNewOffer] = useState(emptyOffer);
 
   // --- Price Editing State ---
-  // key: `${productId}-${stockId}` => edited price string
-  const [editingPrices, setEditingPrices] = useState({});
+  // key: `${productId}-${stockId}` => stock item object
+  const [editingStockItems, setEditingStockItems] = useState({});
 
   // --- Users Tab State ---
   const [users, setUsers] = useState([]);
@@ -255,16 +255,23 @@ const {
     updateProduct(updated);
   };
 
-  const handleSavePrice = (productId, stockId) => {
+  const handleSaveStockEdit = (productId, stockId) => {
     const product = products.find(p => p.id === productId);
     const key = `${productId}-${stockId}`;
-    const newPrice = Number(editingPrices[key]);
-    if (!newPrice || isNaN(newPrice)) { alert('Ingresa un precio válido.'); return; }
+    const editedItem = editingStockItems[key];
+    if (!editedItem) return;
+    
+    if (!editedItem.specificModel || editedItem.specificModel.trim() === '') {
+      alert('El modelo no puede estar vacío.'); return;
+    }
+    const newPrice = Number(editedItem.price);
+    if (!newPrice || isNaN(newPrice)) { alert('Ingresa un precio válido y numérico.'); return; }
+
     const updatedStock = product.stock.map(s =>
-      s.id === stockId ? { ...s, price: newPrice } : s
+      s.id === stockId ? { ...s, ...editedItem, price: newPrice } : s
     );
     updateProduct({ ...product, stock: updatedStock });
-    setEditingPrices(prev => { const n = { ...prev }; delete n[key]; return n; });
+    setEditingStockItems(prev => { const n = { ...prev }; delete n[key]; return n; });
   };
 
   // ------ OFFERS HANDLERS ------
@@ -866,60 +873,93 @@ const {
                                 ) : (
                                   product.stock.map(item => (
                                     <div key={item.id} className="device-item" style={{ background: 'transparent' }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                                        <span style={{ fontWeight: 800 }}>{item.specificModel}</span>
-                                        {dept === 'Celulares' && (
-                                          <span style={{ color: 'var(--tertiary)', fontWeight: 800 }}>{item.battery}%</span>
-                                        )}
-                                        <div className={`device-grade grade-${item.grade.replace(/\s+/g, '-').toLowerCase()}`} style={{ border: 'none', background: 'var(--surface-container-highest)', color: 'var(--on-surface)' }}>
-                                          {item.grade}
-                                        </div>
-                                      </div>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        {/* INLINE PRICE EDITOR */}
-                                        {editingPrices[`${product.id}-${item.id}`] !== undefined ? (
-                                          <>
-                                            <span style={{ color: 'var(--on-surface-variant)', fontSize: '0.85rem', fontWeight: 700 }}>RD$</span>
+                                      {editingStockItems[`${product.id}-${item.id}`] ? (
+                                        <>
+                                          <div style={{ display: 'grid', gridTemplateColumns: dept === 'Celulares' ? '1.5fr 60px 1fr 1fr' : '2fr 1fr 1fr', gap: '8px', width: '100%' }}>
+                                            <input
+                                              type="text"
+                                              value={editingStockItems[`${product.id}-${item.id}`].specificModel}
+                                              onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], specificModel: e.target.value } }))}
+                                              className="form-input"
+                                              style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
+                                              placeholder="Modelo Exacto"
+                                              autoFocus
+                                            />
+                                            {dept === 'Celulares' && (
+                                              <input
+                                                type="number"
+                                                value={editingStockItems[`${product.id}-${item.id}`].battery}
+                                                onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], battery: e.target.value } }))}
+                                                className="form-input"
+                                                style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
+                                                placeholder="Batería %"
+                                              />
+                                            )}
+                                            <select
+                                              value={editingStockItems[`${product.id}-${item.id}`].grade}
+                                              onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], grade: e.target.value } }))}
+                                              className="form-input"
+                                              style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
+                                            >
+                                              <option value="Nuevo">Nuevo</option>
+                                              <option value="Como Nuevo">Como Nuevo</option>
+                                              <option value="Grado A">Grado A</option>
+                                              <option value="Grado A-">Grado A-</option>
+                                              <option value="Outlet">Outlet</option>
+                                            </select>
                                             <input
                                               type="number"
-                                              value={editingPrices[`${product.id}-${item.id}`]}
-                                              onChange={e => setEditingPrices(prev => ({ ...prev, [`${product.id}-${item.id}`]: e.target.value }))}
+                                              value={editingStockItems[`${product.id}-${item.id}`].price}
+                                              onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], price: e.target.value } }))}
                                               className="form-input"
-                                              style={{ width: '130px', margin: 0, padding: '8px 12px', fontSize: '0.9rem' }}
-                                              autoFocus
-                                              onKeyDown={e => { if (e.key === 'Enter') handleSavePrice(product.id, item.id); if (e.key === 'Escape') setEditingPrices(prev => { const n={...prev}; delete n[`${product.id}-${item.id}`]; return n; }); }}
+                                              style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
+                                              placeholder="Precio RD$"
+                                              onKeyDown={e => { if (e.key === 'Enter') handleSaveStockEdit(product.id, item.id); if (e.key === 'Escape') setEditingStockItems(prev => { const n={...prev}; delete n[`${product.id}-${item.id}`]; return n; }); }}
                                             />
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
                                             <button
-                                              onClick={() => handleSavePrice(product.id, item.id)}
-                                              style={{ background: 'var(--primary)', color: 'var(--on-primary)', border: 'none', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', fontWeight: 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                              onClick={() => handleSaveStockEdit(product.id, item.id)}
+                                              style={{ background: 'var(--primary)', color: 'var(--on-primary)', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', display: 'flex' }}
                                             >
-                                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>check</span>
+                                              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>check</span>
                                             </button>
                                             <button
-                                              onClick={() => setEditingPrices(prev => { const n={...prev}; delete n[`${product.id}-${item.id}`]; return n; })}
-                                              style={{ background: 'var(--surface-container-high)', color: 'var(--on-surface)', border: 'none', borderRadius: '8px', padding: '8px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                              onClick={() => setEditingStockItems(prev => { const n={...prev}; delete n[`${product.id}-${item.id}`]; return n; })}
+                                              style={{ background: 'var(--surface-container-high)', color: 'var(--on-surface)', border: 'none', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', display: 'flex' }}
                                             >
-                                              <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>close</span>
+                                              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>close</span>
                                             </button>
-                                          </>
-                                        ) : (
-                                          <>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                                            <span style={{ fontWeight: 800 }}>{item.specificModel}</span>
+                                            {dept === 'Celulares' && (
+                                              <span style={{ color: 'var(--tertiary)', fontWeight: 800 }}>{item.battery}%</span>
+                                            )}
+                                            <div className={`device-grade grade-${item.grade.replace(/\s+/g, '-').toLowerCase()}`} style={{ border: 'none', background: 'var(--surface-container-highest)', color: 'var(--on-surface)' }}>
+                                              {item.grade}
+                                            </div>
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
                                             <button
-                                              onClick={() => setEditingPrices(prev => ({ ...prev, [`${product.id}-${item.id}`]: item.price }))}
+                                              onClick={() => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...item } }))}
                                               style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', display: 'flex', padding: '4px' }}
-                                              title="Editar precio"
+                                              title="Editar todo"
                                             >
                                               <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>edit</span>
                                             </button>
-                                          </>
-                                        )}
-                                        <button onClick={() => handleDeleteStock(product.id, item.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', display: 'flex' }}>
-                                          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
-                                        </button>
+                                            <button onClick={() => handleDeleteStock(product.id, item.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', display: 'flex' }}>
+                                              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
+                                            </button>
+                                          </div>
+                                        </>
+                                      )}
                                       </div>
-                                    </div>
-                                  ))
+                                    ))
                                 )}
                               </div>
                             </div>
