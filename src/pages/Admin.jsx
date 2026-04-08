@@ -61,6 +61,7 @@ const {
   const [localSettings, setLocalSettings] = useState(settings);
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [productImage, setProductImage] = useState('');
 
   // --- Departments Management ---
   const [newDepartment, setNewDepartment] = useState('');
@@ -206,6 +207,7 @@ const {
 
   const handleEditProduct = (p) => {
     setEditingProduct(p);
+    setProductImage(p.image || '');
     setShowProductModal(true);
   };
 
@@ -651,7 +653,7 @@ const {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2rem', letterSpacing: '-1px' }}>Familias Curadas</h2>
-            <button className="btn" onClick={() => { setEditingProduct(null); setShowProductModal(true); }}>
+            <button className="btn" onClick={() => { setEditingProduct(null); setProductImage(''); setShowProductModal(true); }}>
               <span className="material-symbols-outlined">add</span>
               Nueva Familia
             </button>
@@ -1098,18 +1100,16 @@ const {
               <ImageInput 
                 label="Imagen de Presentación" 
                 name="image" 
-                value={editingProduct?.image || ''} 
-                onUpload={(e) => handleFileUpload(e, 'image', false, (base64) => {
-                  const input = e.target.closest('form').querySelector('input[name="image"]');
-                  if (input) input.value = base64;
-                })} 
+                value={productImage} 
+                onChange={(e) => setProductImage(e.target.value)}
+                onUpload={(e) => handleFileUpload(e, 'image', false, (base64) => setProductImage(base64))} 
               />
 
               <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
                 <button type="submit" className="btn" style={{ flex: 2 }}>
                   {editingProduct ? 'Guardar Redefinición' : 'Publicar Familia'}
                 </button>
-                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowProductModal(false); setEditingProduct(null); }}>
+                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => { setShowProductModal(false); setEditingProduct(null); setProductImage(''); }}>
                   Cancelar
                 </button>
               </div>
