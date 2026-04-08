@@ -4,9 +4,14 @@ import { useInventory } from '../context/InventoryContext';
 
 export default function ProductDetails() {
   const { id } = useParams();
-  const { products, settings, loading } = useInventory();
+  const { products, settings, loading, updateSettings } = useInventory();
   
   const product = products.find(p => p.id === id);
+
+  const [reviewName, setReviewName] = React.useState('');
+  const [reviewStars, setReviewStars] = React.useState(5);
+  const [reviewText, setReviewText] = React.useState('');
+  const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
 
   const activeDepts = React.useMemo(() => {
     const fromSettings = settings.departments || [];
@@ -15,6 +20,28 @@ export default function ProductDetails() {
       products.some(p => (p.department || 'Celulares') === dept)
     );
   }, [products, settings.departments]);
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!reviewName || !reviewText) return;
+    
+    const words = reviewName.trim().split(' ');
+    const initials = words.length > 1 
+      ? (words[0][0] + words[1][0]).toUpperCase() 
+      : (words[0].substring(0, 2)).toUpperCase();
+
+    const newReview = {
+      id: Date.now().toString(),
+      initials,
+      name: reviewName,
+      rating: `${reviewStars} Estrellas`,
+      text: reviewText
+    };
+
+    const updatedReviews = [...(settings.reviews || []), newReview];
+    await updateSettings({ ...settings, reviews: updatedReviews });
+    setReviewSubmitted(true);
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -218,6 +245,49 @@ export default function ProductDetails() {
                 </button>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* REVIEWS FORM */}
+        <section className="section" style={{ background: 'var(--surface-container-low)', padding: '60px 5%' }}>
+          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', marginBottom: '24px', textAlign: 'center' }}>¿Qué te parece este equipo?</h3>
+            {reviewSubmitted ? (
+              <div style={{ background: 'var(--primary)', color: 'var(--on-primary)', padding: '24px', borderRadius: 'var(--lg-radius)', textAlign: 'center' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '3rem', marginBottom: '16px' }}>check_circle</span>
+                <h4 style={{ margin: 0, fontSize: '1.2rem' }}>¡Gracias por tu reseña!</h4>
+                <p style={{ marginTop: '8px', opacity: 0.9 }}>Tu comentario ayudará a otros clientes a tomar una decisión.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleReviewSubmit} style={{ display: 'grid', gap: '20px', background: 'var(--surface-container)', padding: '32px', borderRadius: 'var(--xl-radius)' }}>
+                <div>
+                  <label className="form-label">Tu Nombre</label>
+                  <input type="text" value={reviewName} onChange={e => setReviewName(e.target.value)} required className="form-input" placeholder="Ej: Anehudy Bravo" />
+                </div>
+                <div>
+                  <label className="form-label">Calificación</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button 
+                        key={star} 
+                        type="button" 
+                        onClick={() => setReviewStars(star)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0', color: star <= reviewStars ? '#fbbc04' : 'var(--outline-variant)' }}
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '2.2rem' }}>star</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label">Tu Comentario</label>
+                  <textarea rows="3" value={reviewText} onChange={e => setReviewText(e.target.value)} required className="form-input" placeholder="Me encantó el servicio y el equipo está en perfecto estado..." />
+                </div>
+                <button type="submit" className="btn" style={{ justifyContent: 'center', padding: '14px' }}>
+                  Publicar Comentario
+                </button>
+              </form>
+            )}
           </div>
         </section>
       </main>
