@@ -88,15 +88,17 @@ export default function Home() {
             <span className="badge">Nuestra Esencia</span>
             <h2>{settings.aboutTitle || 'Excelencia en cada detalle'}</h2>
             <p>{settings.aboutDesc || 'En Sailin Tecno entendemos que tu smartphone es tu herramienta más importante. Por eso, seleccionamos solo hardware de élite que cumpla con los más altos estándares de rendimiento y estética.'}</p>
-            <div style={{ borderLeft: '2px solid var(--primary)', paddingLeft: '24px', marginTop: '32px' }}>
-              <p style={{ fontStyle: 'italic', color: 'var(--primary)' }}>"La tecnología simplifica la vida, nosotros nos encargamos de que sea la mejor tecnología."</p>
-            </div>
+            {(settings.aboutQuote) && (
+              <div style={{ borderLeft: '2px solid var(--primary)', paddingLeft: '24px', marginTop: '32px' }}>
+                <p style={{ fontStyle: 'italic', color: 'var(--primary)' }}>"{settings.aboutQuote}"</p>
+              </div>
+            )}
           </div>
           <div style={{ position: 'relative' }}>
             <img 
-              src="https://images.unsplash.com/photo-1556656793-062ff98782fe?auto=format&fit=crop&q=80&w=800" 
-              alt="Hardware" 
-              style={{ width: '100%', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}
+              src={settings.aboutImage || 'https://images.unsplash.com/photo-1556656793-062ff98782fe?auto=format&fit=crop&q=80&w=800'} 
+              alt="Nuestra Historia" 
+              style={{ width: '100%', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', objectFit: 'cover', maxHeight: '500px' }}
             />
           </div>
         </div>

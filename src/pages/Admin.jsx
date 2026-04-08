@@ -507,24 +507,35 @@ const {
             </div>
           </div>
 
-          {/* Instagram Feed Editor */}
-          <div style={{ background: 'var(--bg-card)', padding: '25px', borderRadius: '15px', border: '1px solid var(--glass-border)' }}>
-            <h3 style={{ marginBottom: '20px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span className="material-icons">instagram</span> Publicidad: Fotos de Instagram (Feed Preview)
+          {/* Nuestra Historia / About Section Editor */}
+          <div style={{ background: 'var(--surface-container-low)', padding: '48px', borderRadius: 'var(--xl-radius)' }}>
+            <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>auto_stories</span>
+              Nuestra Historia (Sección About)
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '20px' }}>Selecciona hasta 4 fotos recientes para mostrar en la página de inicio como publicidad.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
-              {[0, 1, 2, 3].map((idx) => (
-                <div key={idx}>
-                  <ImageInput 
-                    label={`Foto ${idx + 1}`} 
-                    name={`ig-${idx}`} 
-                    value={localSettings.instagramPhotos?.[idx] || ''} 
-                    onChange={(e) => handleInstagramPhotoChange(idx, e.target.value)} 
-                    onUpload={(e) => handleFileUpload(e, `ig-${idx}`, false, (base64) => handleInstagramPhotoChange(idx, base64))}
-                  />
-                </div>
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+              <div>
+                <label className="form-label">Título de la Sección</label>
+                <input type="text" name="aboutTitle" value={localSettings.aboutTitle || ''} onChange={handleSettingsChange} className="form-input" placeholder="Ej: Excelencia en cada detalle" />
+              </div>
+              <div style={{ gridColumn: 'span 1' }}>
+                <label className="form-label">Subtítulo / Cita</label>
+                <input type="text" name="aboutQuote" value={localSettings.aboutQuote || ''} onChange={handleSettingsChange} className="form-input" placeholder="Ej: La tecnología simplifica la vida..." />
+              </div>
+              <div style={{ gridColumn: 'span 2' }}>
+                <label className="form-label">Texto Descriptivo</label>
+                <textarea name="aboutDesc" value={localSettings.aboutDesc || ''} onChange={handleSettingsChange} rows="4" className="form-input" placeholder="Cuéntanos la historia de tu tienda..." />
+              </div>
+            </div>
+            <div style={{ marginTop: '32px' }}>
+              <ImageInput
+                label="Foto de Nuestra Historia"
+                name="aboutImage"
+                value={localSettings.aboutImage}
+                onChange={handleSettingsChange}
+                onUpload={(e) => handleFileUpload(e, 'aboutImage')}
+                placeholder="URL de la foto o sube una imagen..."
+              />
             </div>
           </div>
 
