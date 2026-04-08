@@ -104,6 +104,50 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Testimonials / Reviews Section */}
+      {settings.reviews && settings.reviews.length > 0 && (
+        <section className="section" style={{ background: 'var(--surface-container-highest)' }}>
+          <div className="section-title">
+            <span className="badge" style={{ background: 'var(--primary)', color: 'var(--on-primary)' }}>Nuestra Comunidad</span>
+            <h2>Nuestros clientes hablan por nosotros</h2>
+            <p style={{ maxWidth: '600px', margin: '0 auto' }}>Descubre por qué somos la opción número uno de miles de clientes satisfechos en el país.</p>
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', maxWidth: '1400px', margin: '0 auto', padding: '0 5%' }}>
+            {settings.reviews.map(review => (
+              <div key={review.id} style={{ 
+                background: 'var(--surface-container-low)', 
+                padding: '32px', 
+                borderRadius: 'var(--xl-radius)', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '20px',
+                border: '1px solid var(--outline-variant)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ 
+                    width: '48px', height: '48px', borderRadius: '50%', 
+                    background: 'var(--tertiary)', color: 'var(--on-tertiary)', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    fontWeight: 900, fontSize: '1.2rem', flexShrink: 0 
+                  }}>
+                    {review.initials || review.name?.substring(0, 2).toUpperCase() || '✨'}
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--on-surface)' }}>{review.name}</h4>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '1rem', color: '#fbbc04' }}>star</span>
+                      {review.rating}
+                    </span>
+                  </div>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--on-surface-variant)', lineHeight: 1.6 }}>"{review.text}"</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <footer>
         <div className="footer-content">
           <div>

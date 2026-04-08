@@ -171,6 +171,24 @@ const {
     setLocalSettings(prev => ({ ...prev, whyUsItems: updated }));
   };
 
+  // Reviews Editor
+  const handleReviewChange = (index, field, value) => {
+    const updated = [...(localSettings.reviews || [])];
+    updated[index] = { ...updated[index], [field]: value };
+    setLocalSettings(prev => ({ ...prev, reviews: updated }));
+  };
+
+  const handleAddReview = () => {
+    const newItem = { id: Date.now().toString(), initials: 'Ab', name: 'Nuevo Cliente', rating: '5 reviews', text: 'Reseña del cliente...' };
+    setLocalSettings(prev => ({ ...prev, reviews: [...(prev.reviews || []), newItem] }));
+  };
+
+  const handleDeleteReview = (index) => {
+    const updated = [...(localSettings.reviews || [])];
+    updated.splice(index, 1);
+    setLocalSettings(prev => ({ ...prev, reviews: updated }));
+  };
+
   const handleInstagramPhotoChange = (index, value) => {
     const updated = [...(localSettings.instagramPhotos || [])];
     updated[index] = value;
@@ -585,6 +603,45 @@ const {
                     <input type="text" value={item.desc} onChange={e => handleWhyUsChange(idx, 'desc', e.target.value)} className="form-input" />
                   </div>
                   <button type="button" onClick={() => handleDeleteWhyUs(idx)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', marginTop: '16px' }}>
+                    <span className="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Reviews Editor */}
+          <div style={{ background: 'var(--surface-container-low)', padding: '48px', borderRadius: 'var(--xl-radius)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>forum</span>
+                Testimonios de Clientes
+              </h3>
+              <button type="button" className="btn btn-outline" onClick={handleAddReview}>
+                <span className="material-symbols-outlined">add</span>
+                Nueva Reseña
+              </button>
+            </div>
+            <div style={{ display: 'grid', gap: '16px' }}>
+              {(localSettings.reviews || []).map((item, idx) => (
+                <div key={item.id || idx} style={{ display: 'grid', gridTemplateColumns: '70px 1.5fr 1.5fr 3fr auto', gap: '16px', alignItems: 'center', background: 'var(--surface-container)', padding: '24px', borderRadius: 'var(--lg-radius)' }}>
+                  <div>
+                    <label className="form-label">Iniciales</label>
+                    <input type="text" value={item.initials || ''} onChange={e => handleReviewChange(idx, 'initials', e.target.value)} className="form-input" style={{ textAlign: 'center' }} maxLength="2" placeholder="Ej: Ab" />
+                  </div>
+                  <div>
+                    <label className="form-label">Nombre</label>
+                    <input type="text" value={item.name || ''} onChange={e => handleReviewChange(idx, 'name', e.target.value)} className="form-input" placeholder="Ej: Anehudy Bravo" />
+                  </div>
+                  <div>
+                    <label className="form-label">Calificación / Etiqueta</label>
+                    <input type="text" value={item.rating || ''} onChange={e => handleReviewChange(idx, 'rating', e.target.value)} className="form-input" placeholder="Ej: Local Guide • 128 reviews" />
+                  </div>
+                  <div>
+                    <label className="form-label">Comentario</label>
+                    <textarea rows="2" value={item.text || ''} onChange={e => handleReviewChange(idx, 'text', e.target.value)} className="form-input" placeholder="Comentario del cliente..." />
+                  </div>
+                  <button type="button" onClick={() => handleDeleteReview(idx)} style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', marginTop: '16px' }}>
                     <span className="material-symbols-outlined">delete</span>
                   </button>
                 </div>
