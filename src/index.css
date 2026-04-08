@@ -477,34 +477,83 @@ footer {
   margin-bottom: 4px;
 }
 
-/* STOCK ITEMS */
-.item-main-info {
-  display: flex;
-  gap: 40px;
-  align-items: center;
-}
-
-.item-action-info {
-  display: flex;
-  gap: 32px;
-  align-items: center;
-  text-align: right;
-}
-
-.price-text {
-  font-family: var(--font-headline);
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: var(--primary);
-  letter-spacing: -1px;
-}
-
-.empty-stock {
-  padding: 60px;
-  text-align: center;
-  background: var(--surface-container-lowest);
+/* STOCK TABLE - Inline single-row layout */
+.stock-table {
+  background: var(--surface-container-low);
+  border: 1px solid var(--outline-variant);
   border-radius: var(--xl-radius);
+  overflow: hidden;
+}
+
+.stock-header-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px;
+  background: var(--surface-container-high);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   color: var(--on-surface-variant);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.stock-header-row span:nth-child(1) { flex: 3; }
+.stock-header-row span:nth-child(2) { flex: 1.5; }
+.stock-header-row span:nth-child(3) { flex: 1.5; }
+.stock-header-row span:nth-child(4) { flex: 2; }
+.stock-header-row span:nth-child(5) { flex: 2; text-align: right; }
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--outline-variant);
+  transition: background 0.2s ease;
+}
+
+.stock-row:last-child { border-bottom: none; }
+
+.stock-row:hover {
+  background: var(--surface-container) !important;
+}
+
+.stock-row-even { background: var(--surface-container-low); }
+.stock-row-odd  { background: var(--surface-container-lowest); }
+
+.stock-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1.5;
+}
+
+.stock-model { flex: 3; font-weight: 700; font-size: 0.95rem; }
+.stock-price { flex: 2; font-weight: 900; font-size: 1.05rem; color: var(--primary); font-family: var(--font-headline); }
+.stock-action { flex: 2; justify-content: flex-end; }
+
+.grade-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+}
+
+.battery-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(61, 226, 115, 0.1);
+  color: var(--tertiary);
+  border: 1px solid rgba(61, 226, 115, 0.3);
 }
 
 /* ==========================================================================
@@ -540,30 +589,34 @@ footer {
   .description-text { font-size: 0.95rem; margin-bottom: 32px; }
   
   .device-list { margin-top: 16px; border-radius: 12px; }
-  .device-item { 
-    flex-direction: column; 
-    align-items: flex-start; 
-    gap: 24px; 
-    padding: 20px;
+
+  /* Stock table mobile: stack each row into 2 mini rows */
+  .stock-header-row { display: none; } /* hide headers on very small screens */
+
+  .stock-row {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--outline-variant) !important;
+    border-bottom: 1px solid var(--outline-variant) !important;
   }
 
-  .item-main-info { 
-    width: 100%; 
-    justify-content: space-between; 
-    gap: 12px; 
-  }
-  
-  .item-action-info { 
-    width: 100%; 
-    justify-content: space-between; 
-    text-align: left;
-    border-top: 1px solid var(--outline-variant);
-    padding-top: 16px;
-    gap: 12px;
+  .stock-table {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
   }
 
-  .price-text { font-size: 1.4rem; }
-  .item-action-info .btn { flex: 1; justify-content: center; }
+  .stock-model { flex: 0 0 100%; font-size: 0.9rem; }
+  .stock-cell  { flex: 1 1 auto; }
+  .stock-price { flex: 1 1 auto; font-size: 1rem; }
+  .stock-action { flex: 0 0 100%; justify-content: stretch; }
+  .stock-action .btn { width: 100%; justify-content: center; }
 
   .productos {
     grid-template-columns: repeat(2, 1fr);
