@@ -145,7 +145,7 @@ nav {
 }
 
 .hero h1 span {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+  background: linear-gradient(135deg, #FF2A2A 0%, #0066FF 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

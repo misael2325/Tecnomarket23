@@ -390,15 +390,22 @@ const {
       if (p.stock && p.stock.length > 0) {
         p.stock.forEach(item => {
           tableData.push([
-            p.brand,
-            p.model,
-            item.specificModel,
+            p.brand || '',
+            p.model || '',
+            item.specificModel || '',
             `Grado ${item.grade}`,
             item.battery > 0 ? `${item.battery}%` : 'N/A',
             `RD$ ${item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}`
           ]);
         });
       }
+    });
+
+    // Sort alphabetically by Brand (0), then Family (1), then Specific Model (2)
+    tableData.sort((a, b) => {
+      if (a[0].toLowerCase() !== b[0].toLowerCase()) return a[0].localeCompare(b[0]);
+      if (a[1].toLowerCase() !== b[1].toLowerCase()) return a[1].localeCompare(b[1]);
+      return a[2].localeCompare(b[2]);
     });
 
     doc.autoTable({
