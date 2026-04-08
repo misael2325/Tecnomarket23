@@ -32,8 +32,8 @@ export default function Home() {
               Entrar
             </Link>
           )}
-          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '10px 24px' }}>
-            Contáctanos
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '10px 24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i> Contáctanos
           </a>
         </div>
       </nav>
@@ -178,13 +178,13 @@ export default function Home() {
             <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Redes</h4>
             <div className="social-links">
               {settings.socialFacebook && (
-                <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer">
-                  <span className="material-symbols-outlined">facebook</span>
+                <a href={settings.socialFacebook} target="_blank" rel="noopener noreferrer" style={{ fontSize: '1.5rem' }}>
+                  <i className="fa-brands fa-facebook"></i>
                 </a>
               )}
               {settings.socialInstagram && (
-                <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer">
-                  <span className="material-symbols-outlined">camera_alt</span>
+                <a href={settings.socialInstagram} target="_blank" rel="noopener noreferrer" style={{ fontSize: '1.5rem' }}>
+                  <i className="fa-brands fa-instagram"></i>
                 </a>
               )}
             </div>

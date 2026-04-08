@@ -173,7 +173,7 @@ export default function ProductDetails() {
                       style={{ padding: '10px 24px', whiteSpace: 'nowrap' }}
                     >
                       Lo quiero
-                      <span className="material-symbols-outlined">shopping_bag</span>
+                      <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i>
                     </a>
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export default function ProductDetails() {
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <a href={waBase} target="_blank" rel="noopener noreferrer" className="btn" style={{ justifyContent: 'center' }}>
-                  <span className="material-symbols-outlined">forum</span>
+                  <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i>
                   WhatsApp
                 </a>
                 <button 
