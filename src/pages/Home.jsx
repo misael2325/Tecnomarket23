@@ -172,7 +172,10 @@ export default function Home() {
           <div>
             <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Ubicación</h4>
             <p style={{ fontSize: '0.9rem', marginBottom: '8px', color: 'var(--on-surface-variant)' }}>{settings.contactAddress}</p>
-            <p style={{ fontWeight: 800 }}>{settings.contactPhone}</p>
+            <p style={{ fontWeight: 800, marginBottom: '16px' }}>{settings.contactPhone}</p>
+            <a href="https://maps.app.goo.gl/2BJC3KFP12Wp7ovX6" target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '0.85rem', width: 'fit-content' }}>
+              <i className="fa-solid fa-location-dot" style={{ fontSize: '1rem' }}></i> Cómo Llegar
+            </a>
           </div>
           <div>
             <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Redes</h4>
