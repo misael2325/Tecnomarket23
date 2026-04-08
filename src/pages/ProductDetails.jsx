@@ -116,7 +116,22 @@ export default function ProductDetails() {
 
                   <div className="stock-cell stock-action">
                     <a
-                      href={`${waBase}?text=${encodeURIComponent(`Hola, me interesa el ${item.specificModel} de la colección ${product.model} 📱`)}`}
+                      href={(() => {
+                        const batteryLine = product.department === 'Celulares'
+                          ? `\n🔋 *Salud de Batería:* ${item.battery}%` : '';
+                        const msg =
+`👋 ¡Hola! Estoy interesado/a en el siguiente equipo:
+
+━━━━━━━━━━━━━━━━━━━━
+📱 *Familia:* ${product.model}
+📦 *Modelo Exacto:* ${item.specificModel}
+⭐ *Estado:* ${item.grade}${batteryLine}
+💰 *Precio:* RD$ ${Number(item.price).toLocaleString()}
+━━━━━━━━━━━━━━━━━━━━
+
+¿Este equipo sigue disponible? 😊`;
+                        return `${waBase}?text=${encodeURIComponent(msg)}`;
+                      })()}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn"
