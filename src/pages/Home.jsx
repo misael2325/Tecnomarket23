@@ -69,7 +69,7 @@ function CampaignSlider({ banners }) {
 }
 
 export default function Home() {
-  const { settings = {} } = useInventory();
+  const { settings = {}, offers = [] } = useInventory();
   const { currentUser, isAdmin, logout } = useAuth();
 
   // WhatsApp link
@@ -134,6 +134,46 @@ export default function Home() {
           </a>
         </div>
       </section>
+
+      {/* ACTIVE CAMPAIGNS / OFFERS */}
+      {offers && offers.some(o => o.active) && (
+        <section className="section" style={{ background: 'var(--background)', paddingTop: '20px' }}>
+          <div className="section-title">
+            <span className="badge" style={{ background: 'var(--tertiary)', color: 'black' }}>Promociones Especiales</span>
+            <h2>Ofertas de Temporada</h2>
+            <p>Descubre nuestros descuentos por tiempo limitado.</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+            {offers.filter(o => o.active).map(offer => (
+              <div key={offer.id} style={{ 
+                background: offer.bgColor || 'var(--surface-container-low)', 
+                borderRadius: 'var(--xl-radius)', 
+                padding: '32px',
+                position: 'relative',
+                overflow: 'hidden',
+                border: offer.accentColor ? `2px solid ${offer.accentColor}` : 'none'
+              }}>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '16px' }}>{offer.emoji}</span>
+                  <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', fontWeight: 800, color: 'white', marginBottom: '8px' }}>{offer.name}</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', marginBottom: '24px' }}>{offer.description}</p>
+                  
+                  {offer.discount > 0 && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: offer.accentColor || 'var(--primary)', color: 'black', padding: '8px 16px', borderRadius: '100px', fontWeight: 900, fontSize: '0.9rem' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>loyalty</span>
+                      {offer.discount}% OFF EXCLUSIVO
+                    </div>
+                  )}
+                </div>
+                {/* Background decorative image if uploaded */}
+                {offer.image && (
+                  <img src={offer.image} style={{ position: 'absolute', top: 0, right: 0, width: '60%', height: '100%', objectFit: 'cover', opacity: 0.15, maskImage: 'linear-gradient(to right, transparent, black)' }} alt="" />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* WHY CHOOSE US - CLASSIC */}
       <section className="section" style={{ background: 'var(--surface-container-lowest)' }}>
