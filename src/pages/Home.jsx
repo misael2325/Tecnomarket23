@@ -41,7 +41,7 @@ export default function Home() {
       <section className="hero">
         <span className="badge">Tecnología a tu alcance</span>
         <h1>
-          Domina el Mañana con <span>{settings.heroTitle || 'Hardware de Élite'}</span>
+          Toda tu tecnología a un clic con <span>{settings.heroTitle || 'Sailin TecnoSmartPhone'}</span>
         </h1>
         <p>
           {settings.heroSubtitle || settings.heroDescription || 'Tu destino tecnológico de confianza. Equipos de alta gama, accesorios originales y el mejor servicio técnico garantizado.'}
