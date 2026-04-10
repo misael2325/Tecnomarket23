@@ -250,6 +250,7 @@ const {
   };
 
   const handleDeleteStock = (productId, stockId) => {
+    if (!window.confirm('🚨 ¿Estás seguro de que quieres eliminar este artículo del stock de forma permanente?')) return;
     const product = products.find(p => p.id === productId);
     const updated = { ...product, stock: product.stock.filter(s => s.id !== stockId) };
     updateProduct(updated);
@@ -714,7 +715,11 @@ const {
                   gap: '12px' 
                 }}>
                   <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{dept}</span>
-                  <button onClick={() => updateDepartments(departments.filter((_, i) => i !== index))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)', display: 'flex' }}>
+                  <button onClick={() => {
+                    if(window.confirm('🚨 ¿Estás seguro de que deseas eliminar este departamento?\nEsto afectará las categorías en la pantalla principal.')){
+                      updateDepartments(departments.filter((_, i) => i !== index));
+                    }
+                  }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface-variant)', display: 'flex' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>close</span>
                   </button>
                 </div>
@@ -757,7 +762,11 @@ const {
                             <button onClick={() => handleEditProduct(product)} style={{ background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
                               <span className="material-icons" style={{ fontSize: '1.2rem' }}>edit</span>
                             </button>
-                            <button onClick={() => deleteProduct(product.id)} style={{ background: 'rgba(255,0,0,0.6)', color: 'white', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
+                            <button onClick={() => {
+                              if(window.confirm('🚨 ¿Eliminar esta familia y todo su stock interno del catálogo permanentemente?')){
+                                deleteProduct(product.id);
+                              }
+                            }} style={{ background: 'rgba(255,0,0,0.6)', color: 'white', border: 'none', padding: '8px', borderRadius: '50%', cursor: 'pointer' }}>
                               <span className="material-icons" style={{ fontSize: '1.2rem' }}>delete</span>
                             </button>
                           </div>
@@ -1314,94 +1323,121 @@ const {
                 <p style={{ color: 'var(--on-surface-variant)' }}>No hay usuarios registrados aún.</p>
               </div>
             ) : (
-              users.map(user => {
-                const isTargetSuper = user.email === 'elchelpo2325@gmail.com';
-                return (
-                  <div key={user.id} style={{ 
-                    background: 'var(--surface-container-low)', 
-                    padding: '24px 32px', 
-                    borderRadius: 'var(--lg-radius)', 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    gap: '24px'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                      <div style={{ 
-                        width: '56px', 
-                        height: '56px', 
-                        borderRadius: '100px', 
-                        background: isTargetSuper ? 'var(--tertiary)' : 'var(--primary)', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        color: 'black', 
-                        fontWeight: 900, 
-                        fontSize: '1.2rem' 
-                      }}>
-                        {user.name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h4 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
-                          {user.name || 'Sin nombre'} {isTargetSuper && <span style={{ color: 'var(--tertiary)', fontSize: '0.7rem', verticalAlign: 'middle', marginLeft: '8px' }}>SUPER</span>}
-                        </h4>
-                        <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', margin: '4px 0 12px' }}>{user.email}</p>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <span style={{ 
-                            fontSize: '0.65rem', 
-                            padding: '4px 12px', 
-                            borderRadius: '100px', 
-                            background: user.status === 'approved' ? 'rgba(0, 255, 135, 0.1)' : 'rgba(255, 78, 107, 0.1)', 
-                            color: user.status === 'approved' ? '#00ff87' : '#ff4e6b',
-                            fontWeight: 900,
-                            letterSpacing: '0.05em'
-                          }}>
-                            {user.status?.toUpperCase() || 'PENDING'}
-                          </span>
-                          <span style={{ 
-                            fontSize: '0.65rem', 
-                            padding: '4px 12px', 
-                            borderRadius: '100px', 
-                            background: 'var(--surface-container-highest)', 
-                            color: 'var(--on-surface)',
-                            fontWeight: 900,
-                            letterSpacing: '0.05em'
-                          }}>
-                            {user.role?.toUpperCase() || 'USER'}
-                          </span>
+              (() => {
+                const teamUsers = users.filter(u => u.role === 'admin' || u.role === 'superadmin' || u.email === 'elchelpo2325@gmail.com');
+                const clientUsers = users.filter(u => u.role !== 'admin' && u.role !== 'superadmin' && u.email !== 'elchelpo2325@gmail.com');
+
+                const renderUserCard = (user) => {
+                  const isTargetSuper = user.email === 'elchelpo2325@gmail.com';
+                  return (
+                    <div key={user.id} style={{ 
+                      background: 'var(--surface-container-low)', 
+                      padding: '24px 32px', 
+                      borderRadius: 'var(--lg-radius)', 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      gap: '24px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                        <div style={{ 
+                          width: '56px', 
+                          height: '56px', 
+                          borderRadius: '100px', 
+                          background: isTargetSuper ? 'var(--tertiary)' : 'var(--primary)', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          color: 'black', 
+                          fontWeight: 900, 
+                          fontSize: '1.2rem' 
+                        }}>
+                          {user.name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.1rem', fontWeight: 800, margin: 0 }}>
+                            {user.name || 'Sin nombre'} {isTargetSuper && <span style={{ color: 'var(--tertiary)', fontSize: '0.7rem', verticalAlign: 'middle', marginLeft: '8px' }}>SUPER</span>}
+                          </h4>
+                          <p style={{ color: 'var(--on-surface-variant)', fontSize: '0.9rem', margin: '4px 0 12px' }}>{user.email}</p>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <span style={{ 
+                              fontSize: '0.65rem', 
+                              padding: '4px 12px', 
+                              borderRadius: '100px', 
+                              background: user.status === 'approved' ? 'rgba(0, 255, 135, 0.1)' : 'rgba(255, 78, 107, 0.1)', 
+                              color: user.status === 'approved' ? '#00ff87' : '#ff4e6b',
+                              fontWeight: 900,
+                              letterSpacing: '0.05em'
+                            }}>
+                              {user.status?.toUpperCase() || 'PENDING'}
+                            </span>
+                            <span style={{ 
+                              fontSize: '0.65rem', 
+                              padding: '4px 12px', 
+                              borderRadius: '100px', 
+                              background: 'var(--surface-container-highest)', 
+                              color: 'var(--on-surface)',
+                              fontWeight: 900,
+                              letterSpacing: '0.05em'
+                            }}>
+                              {user.role?.toUpperCase() || 'USER'}
+                            </span>
+                          </div>
                         </div>
                       </div>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        {!isTargetSuper ? (
+                          <>
+                            {isSuperAdmin && (
+                              <div style={{ display: 'flex', gap: '8px', marginRight: '16px' }}>
+                                {user.role === 'admin' ? (
+                                  <button onClick={() => handleUpdateUserRole(user.id, 'user')} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Quitar Admin</button>
+                                ) : (
+                                  <button onClick={() => handleUpdateUserRole(user.id, 'admin')} className="btn" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Hacer Admin</button>
+                                )}
+                              </div>
+                            )}
+                            
+                            {user.status !== 'approved' && (
+                              <button onClick={() => handleUpdateUserStatus(user.id, 'approved')} className="btn" style={{ padding: '8px 24px', fontSize: '0.8rem' }}>Aprobar</button>
+                            )}
+                            {user.status !== 'rejected' && (
+                              <button onClick={() => handleUpdateUserStatus(user.id, 'rejected')} className="btn btn-outline" style={{ padding: '8px 24px', fontSize: '0.8rem', borderColor: 'var(--error)', color: 'var(--error)' }}>Rechazar</button>
+                            )}
+                            <button onClick={() => handleDeleteUser(user.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}>
+                              <span className="material-symbols-outlined">delete</span>
+                            </button>
+                          </>
+                        ) : (
+                          <span style={{ color: 'var(--on-surface-variant)', fontSize: '0.8rem', fontStyle: 'italic' }}>Cuenta de Sistema</span>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      {!isTargetSuper ? (
-                        <>
-                          {isSuperAdmin && (
-                            <div style={{ display: 'flex', gap: '8px', marginRight: '16px' }}>
-                              {user.role === 'admin' ? (
-                                <button onClick={() => handleUpdateUserRole(user.id, 'user')} className="btn btn-outline" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Quitar Admin</button>
-                              ) : (
-                                <button onClick={() => handleUpdateUserRole(user.id, 'admin')} className="btn" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>Hacer Admin</button>
-                              )}
-                            </div>
-                          )}
-                          
-                          {user.status !== 'approved' && (
-                            <button onClick={() => handleUpdateUserStatus(user.id, 'approved')} className="btn" style={{ padding: '8px 24px', fontSize: '0.8rem' }}>Aprobar</button>
-                          )}
-                          {user.status !== 'rejected' && (
-                            <button onClick={() => handleUpdateUserStatus(user.id, 'rejected')} className="btn btn-outline" style={{ padding: '8px 24px', fontSize: '0.8rem', borderColor: 'var(--error)', color: 'var(--error)' }}>Rechazar</button>
-                          )}
-                          <button onClick={() => handleDeleteUser(user.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}>
-                            <span className="material-symbols-outlined">delete</span>
-                          </button>
-                        </>
-                      ) : (
-                        <span style={{ color: 'var(--on-surface-variant)', fontSize: '0.8rem', fontStyle: 'italic' }}>Cuenta de Sistema</span>
-                      )}
+                  );
+                };
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.4rem', color: 'var(--primary)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="material-symbols-outlined">admin_panel_settings</span> Equipo de Sistema
+                      </h3>
+                      <div style={{ display: 'grid', gap: '16px' }}>
+                        {teamUsers.length > 0 ? teamUsers.map(renderUserCard) : <p style={{ color: 'var(--on-surface-variant)' }}>No hay administradores.</p>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.4rem', color: 'var(--tertiary)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="material-symbols-outlined">reviews</span> Clientes y Comentaristas
+                      </h3>
+                      <div style={{ display: 'grid', gap: '16px' }}>
+                        {clientUsers.length > 0 ? clientUsers.map(renderUserCard) : <p style={{ color: 'var(--on-surface-variant)' }}>No hay clientes registrados.</p>}
+                      </div>
                     </div>
                   </div>
                 );
-              })
+              })()
             )}
           </div>
         </div>
