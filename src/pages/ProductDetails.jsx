@@ -173,7 +173,7 @@ export default function ProductDetails() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn"
-                      style={{ padding: '10px 24px', whiteSpace: 'nowrap' }}
+                      style={{ padding: '10px 24px', whiteSpace: 'nowrap', background: '#25D366', color: 'white', border: 'none' }}
                     >
                       Lo quiero
                       <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i>
@@ -229,7 +229,7 @@ export default function ProductDetails() {
                 Te atendemos por WhatsApp y puedes hacer tu pedido aquí mismo.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <a href={waBase} target="_blank" rel="noopener noreferrer" className="btn" style={{ justifyContent: 'center' }}>
+                <a href={waBase} target="_blank" rel="noopener noreferrer" className="btn" style={{ justifyContent: 'center', background: '#25D366', color: 'white', border: 'none' }}>
                   <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i>
                   WhatsApp
                 </a>
