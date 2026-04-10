@@ -944,7 +944,7 @@ const {
                                             </div>
                                           </div>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
+                                            <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>RD$ {item.price.toLocaleString('en-US')}</span>
                                             <button
                                               onClick={() => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...item } }))}
                                               style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', display: 'flex', padding: '4px' }}
@@ -1004,7 +1004,7 @@ const {
                                       </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                                      <span style={{ fontWeight: 900, color: 'var(--primary)' }}>RD$ {item.price.toLocaleString()}</span>
+                                      <span style={{ fontWeight: 900, color: 'var(--primary)' }}>RD$ {item.price.toLocaleString('en-US')}</span>
                                       <button onClick={() => handleDeleteStock(product.id, item.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer', display: 'flex' }}>
                                         <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
                                       </button>

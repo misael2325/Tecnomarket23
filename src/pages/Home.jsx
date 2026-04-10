@@ -132,14 +132,18 @@ export default function Home() {
                 border: '1px solid var(--outline-variant)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ 
-                    width: '48px', height: '48px', borderRadius: '50%', 
-                    background: 'var(--tertiary)', color: 'var(--on-tertiary)', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                    fontWeight: 900, fontSize: '1.2rem', flexShrink: 0 
-                  }}>
-                    {review.initials || review.name?.substring(0, 2).toUpperCase() || '✨'}
-                  </div>
+                  {review.photoURL ? (
+                    <img src={review.photoURL} alt={review.name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ 
+                      width: '48px', height: '48px', borderRadius: '50%', 
+                      background: 'var(--tertiary)', color: 'var(--on-tertiary)', 
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                      fontWeight: 900, fontSize: '1.2rem', flexShrink: 0 
+                    }}>
+                      {review.initials || review.name?.substring(0, 2).toUpperCase() || '✨'}
+                    </div>
+                  )}
                   <div>
                     <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--on-surface)' }}>{review.name}</h4>
                     <span style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)', display: 'flex', alignItems: 'center', gap: '4px' }}>

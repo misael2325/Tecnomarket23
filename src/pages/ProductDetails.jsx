@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function ProductDetails() {
   const { id } = useParams();
   const { products, settings, loading, updateSettings } = useInventory();
+  const { currentUser, loginWithGoogle } = useAuth();
   
   const product = products.find(p => p.id === id);
 
-  const [reviewName, setReviewName] = React.useState('');
   const [reviewStars, setReviewStars] = React.useState(5);
   const [reviewText, setReviewText] = React.useState('');
   const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
@@ -23,17 +24,19 @@ export default function ProductDetails() {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!reviewName || !reviewText) return;
+    if (!currentUser || !reviewText) return;
     
-    const words = reviewName.trim().split(' ');
+    const name = currentUser.name || currentUser.displayName || 'Usuario';
+    const words = name.trim().split(' ');
     const initials = words.length > 1 
       ? (words[0][0] + words[1][0]).toUpperCase() 
-      : (words[0].substring(0, 2)).toUpperCase();
+      : (words[0].substring(0, 2) || 'US').toUpperCase();
 
     const newReview = {
       id: Date.now().toString(),
       initials,
-      name: reviewName,
+      name: name,
+      photoURL: currentUser.photoURL || null,
       rating: `${reviewStars} Estrellas`,
       text: reviewText
     };
@@ -146,7 +149,7 @@ export default function ProductDetails() {
                   </div>
 
                   <div className="stock-cell stock-price">
-                    RD$ {Number(item.price).toLocaleString()}
+                    RD$ {Number(item.price).toLocaleString('en-US')}
                   </div>
 
                   <div className="stock-cell stock-action">
@@ -161,7 +164,7 @@ export default function ProductDetails() {
 📱 *Familia:* ${product.model}
 📦 *Modelo Exacto:* ${item.specificModel}
 ⭐ *Estado:* ${item.grade}${batteryLine}
-💰 *Precio:* RD$ ${Number(item.price).toLocaleString()}
+💰 *Precio:* RD$ ${Number(item.price).toLocaleString('en-US')}
 ━━━━━━━━━━━━━━━━━━━━
 
 ¿Este equipo sigue disponible? 😊`;
@@ -260,10 +263,29 @@ export default function ProductDetails() {
               </div>
             ) : (
               <form onSubmit={handleReviewSubmit} style={{ display: 'grid', gap: '20px', background: 'var(--surface-container)', padding: '32px', borderRadius: 'var(--xl-radius)' }}>
-                <div>
-                  <label className="form-label">Tu Nombre</label>
-                  <input type="text" value={reviewName} onChange={e => setReviewName(e.target.value)} required className="form-input" placeholder="Ej: Anehudy Bravo" />
-                </div>
+                {!currentUser ? (
+                  <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                    <p style={{ marginBottom: '16px', color: 'var(--on-surface-variant)' }}>Para dejar una reseña, inicia sesión con Google.</p>
+                    <button type="button" onClick={loginWithGoogle} className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <i className="fa-brands fa-google"></i>
+                      Iniciar Sesión con Google
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '10px' }}>
+                    {currentUser.photoURL ? (
+                      <img src={currentUser.photoURL} alt={currentUser.displayName || currentUser.name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--primary)', color: 'var(--on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                        {(currentUser.displayName || currentUser.name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)' }}>Comentando como</span>
+                      <h4 style={{ margin: 0, fontSize: '1rem' }}>{currentUser.displayName || currentUser.name}</h4>
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="form-label">Calificación</label>
                   <div style={{ display: 'flex', gap: '8px' }}>
@@ -283,7 +305,7 @@ export default function ProductDetails() {
                   <label className="form-label">Tu Comentario</label>
                   <textarea rows="3" value={reviewText} onChange={e => setReviewText(e.target.value)} required className="form-input" placeholder="Me encantó el servicio y el equipo está en perfecto estado..." />
                 </div>
-                <button type="submit" className="btn" style={{ justifyContent: 'center', padding: '14px' }}>
+                <button type="submit" className="btn" disabled={!currentUser} style={{ justifyContent: 'center', padding: '14px', opacity: !currentUser ? 0.5 : 1, cursor: !currentUser ? 'not-allowed' : 'pointer' }}>
                   Publicar Comentario
                 </button>
               </form>

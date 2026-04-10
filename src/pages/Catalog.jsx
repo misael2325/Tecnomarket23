@@ -144,7 +144,7 @@ export default function Catalog() {
                           <div className="card-info">
                             <h3 className="card-title">{product.model}</h3>
                             <div className="card-price">
-                              {stockItems.length > 0 ? `RD$ ${minPrice.toLocaleString()}` : 'Próximamente'}
+                              {stockItems.length > 0 ? `RD$ ${minPrice.toLocaleString('en-US')}` : 'Próximamente'}
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>
                               <span>Ver detalles</span>

@@ -4,7 +4,9 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
@@ -79,6 +81,27 @@ export function AuthProvider({ children }) {
     return sendPasswordResetEmail(auth, email);
   };
 
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    const res = await signInWithPopup(auth, provider);
+    const user = res.user;
+    
+    // Create user doc in Firestore if it doesn't exist
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (!userDoc.exists()) {
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        name: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        status: 'approved',
+        role: 'user',
+        createdAt: new Date().toISOString()
+      });
+    }
+    return res;
+  };
+
   const isSuperAdmin = currentUser?.email === SUPER_ADMIN_EMAIL;
   const isAdmin = isSuperAdmin || currentUser?.role === 'admin';
 
@@ -90,6 +113,7 @@ export function AuthProvider({ children }) {
       isSuperAdmin,
       signup, 
       login, 
+      loginWithGoogle,
       logout, 
       resetPassword,
       loading 
