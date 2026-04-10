@@ -82,24 +82,29 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    const res = await signInWithPopup(auth, provider);
-    const user = res.user;
-    
-    // Create user doc in Firestore if it doesn't exist
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (!userDoc.exists()) {
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        name: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        status: 'approved',
-        role: 'user',
-        createdAt: new Date().toISOString()
-      });
+    try {
+      const provider = new GoogleAuthProvider();
+      const res = await signInWithPopup(auth, provider);
+      const user = res.user;
+      
+      // Create user doc in Firestore if it doesn't exist
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+          status: 'approved',
+          role: 'user',
+          createdAt: new Date().toISOString()
+        });
+      }
+      return res;
+    } catch (error) {
+      console.error("Error al iniciar sesión con Google:", error);
+      alert("Error de inicio de sesión: " + error.message + ".\n\nVerifica que 'Google' esté habilitado en Firebase y que el dominio actual esté en la lista de 'Authorized Domains'.");
     }
-    return res;
   };
 
   const isSuperAdmin = currentUser?.email === SUPER_ADMIN_EMAIL;
