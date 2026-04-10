@@ -1327,7 +1327,7 @@ const {
                 const teamUsers = users.filter(u => u.role === 'admin' || u.role === 'superadmin' || u.email === 'elchelpo2325@gmail.com');
                 const clientUsers = users.filter(u => u.role !== 'admin' && u.role !== 'superadmin' && u.email !== 'elchelpo2325@gmail.com');
 
-                const renderUserCard = (user) => {
+                const renderUserCard = (user, isClient = false) => {
                   const isTargetSuper = user.email === 'elchelpo2325@gmail.com';
                   return (
                     <div key={user.id} style={{ 
@@ -1386,7 +1386,11 @@ const {
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        {!isTargetSuper ? (
+                        {isClient ? (
+                          <button onClick={() => handleDeleteUser(user.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }} title="Eliminar este usuario visitante">
+                            <span className="material-symbols-outlined">delete</span>
+                          </button>
+                        ) : !isTargetSuper ? (
                           <>
                             {isSuperAdmin && (
                               <div style={{ display: 'flex', gap: '8px', marginRight: '16px' }}>
@@ -1423,7 +1427,7 @@ const {
                         <span className="material-symbols-outlined">admin_panel_settings</span> Equipo de Sistema
                       </h3>
                       <div style={{ display: 'grid', gap: '16px' }}>
-                        {teamUsers.length > 0 ? teamUsers.map(renderUserCard) : <p style={{ color: 'var(--on-surface-variant)' }}>No hay administradores.</p>}
+                        {teamUsers.length > 0 ? teamUsers.map(u => renderUserCard(u, false)) : <p style={{ color: 'var(--on-surface-variant)' }}>No hay administradores.</p>}
                       </div>
                     </div>
 
@@ -1432,7 +1436,7 @@ const {
                         <span className="material-symbols-outlined">reviews</span> Clientes y Comentaristas
                       </h3>
                       <div style={{ display: 'grid', gap: '16px' }}>
-                        {clientUsers.length > 0 ? clientUsers.map(renderUserCard) : <p style={{ color: 'var(--on-surface-variant)' }}>No hay clientes registrados.</p>}
+                        {clientUsers.length > 0 ? clientUsers.map(u => renderUserCard(u, true)) : <p style={{ color: 'var(--on-surface-variant)' }}>No hay clientes registrados.</p>}
                       </div>
                     </div>
                   </div>
