@@ -1060,11 +1060,32 @@ const {
                 <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
                   const file = e.target.files[0];
                   if(!file) return;
-                  if(file.size > 2 * 1024 * 1024) return alert('La imagen es demasiado pesada. Máximo 2MB.');
+                  
                   const reader = new FileReader();
-                  reader.onload = () => {
-                    const base64 = reader.result;
-                    updateSettings({ ...settings, campaignBanners: [...(settings.campaignBanners || []), base64] });
+                  reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                      const canvas = document.createElement('canvas');
+                      const MAX_WIDTH = 1200; // Reducir resolución para no saturar base de datos
+                      let width = img.width;
+                      let height = img.height;
+                      
+                      if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                      }
+                      
+                      canvas.width = width;
+                      canvas.height = height;
+                      const ctx = canvas.getContext('2d');
+                      ctx.drawImage(img, 0, 0, width, height);
+                      
+                      // Comprimir a JPEG al 60% para que nunca pase el límite de Firebase
+                      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                      
+                      updateSettings({ ...settings, campaignBanners: [...(settings.campaignBanners || []), compressedBase64] });
+                    };
+                    img.src = event.target.result;
                   };
                   reader.readAsDataURL(file);
                 }} />

@@ -20,12 +20,12 @@ function CampaignSlider({ banners }) {
     <div style={{ 
       position: 'relative', 
       width: '100%', 
-      maxWidth: '1400px', 
-      margin: '20px auto 40px', 
+      maxWidth: '900px', 
+      margin: '32px auto', 
       borderRadius: 'var(--xl-radius)', 
       overflow: 'hidden', 
-      aspectRatio: '21/9', 
-      boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+      aspectRatio: '16/9', 
+      boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
       background: 'var(--surface-container)'
     }}>
       {banners.map((banner, idx) => (
@@ -103,16 +103,19 @@ export default function Home() {
         </div>
       </nav>
 
-      {settings.campaignBanners && settings.campaignBanners.length > 0 && (
-        <CampaignSlider banners={settings.campaignBanners} />
-      )}
 
       <section className="hero">
         <span className="badge">Tecnología a tu alcance</span>
         <h1>
           Toda tu tecnología a un clic con <span>{settings.heroTitle || 'Sailin TecnoSmartPhone'}</span>
         </h1>
-        <p>
+        
+        {/* CARRUSEL DE CAMPAÑAS DEBAJO DEL TITULO */}
+        {settings.campaignBanners && settings.campaignBanners.length > 0 && (
+          <CampaignSlider banners={settings.campaignBanners} />
+        )}
+
+        <p style={{ marginTop: '20px' }}>
           {settings.heroSubtitle || settings.heroDescription || 'Tu destino tecnológico de confianza. Equipos de alta gama, accesorios originales y el mejor servicio técnico garantizado.'}
         </p>
         <div style={{ display: 'flex', gap: '20px' }}>
