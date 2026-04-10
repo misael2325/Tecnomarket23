@@ -1,7 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
+
+function CampaignSlider({ banners }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!banners || banners.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, [banners]);
+
+  if (!banners || banners.length === 0) return null;
+
+  return (
+    <div style={{ 
+      position: 'relative', 
+      width: '100%', 
+      maxWidth: '1400px', 
+      margin: '20px auto 40px', 
+      borderRadius: 'var(--xl-radius)', 
+      overflow: 'hidden', 
+      aspectRatio: '21/9', 
+      boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+      background: 'var(--surface-container)'
+    }}>
+      {banners.map((banner, idx) => (
+        <div key={idx} style={{ 
+          position: 'absolute', inset: 0, 
+          opacity: currentIndex === idx ? 1 : 0, 
+          transition: 'opacity 0.8s ease-in-out',
+          zIndex: currentIndex === idx ? 1 : 0 
+        }}>
+          <img src={banner} alt={`Campaign ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      ))}
+      
+      {/* Paginador Inferior */}
+      {banners.length > 1 && (
+        <div style={{ 
+          position: 'absolute', bottom: '20px', left: '0', right: '0', 
+          display: 'flex', justifyContent: 'center', gap: '8px', zIndex: 10 
+        }}>
+          {banners.map((_, idx) => (
+            <button 
+              key={idx} 
+              onClick={() => setCurrentIndex(idx)} 
+              aria-label={`Ir al slide ${idx + 1}`}
+              style={{ 
+                width: currentIndex === idx ? '32px' : '8px', 
+                height: '8px', 
+                borderRadius: '4px', 
+                background: currentIndex === idx ? 'var(--primary)' : 'rgba(255,255,255,0.5)', 
+                border: 'none', 
+                cursor: 'pointer', 
+                transition: 'all 0.3s ease',
+                padding: 0
+              }} 
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   const { settings = {} } = useInventory();
@@ -37,6 +102,10 @@ export default function Home() {
           </a>
         </div>
       </nav>
+
+      {settings.campaignBanners && settings.campaignBanners.length > 0 && (
+        <CampaignSlider banners={settings.campaignBanners} />
+      )}
 
       <section className="hero">
         <span className="badge">Tecnología a tu alcance</span>

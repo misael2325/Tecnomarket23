@@ -1047,6 +1047,53 @@ const {
             </button>
           </div>
 
+          {/* BANNER CAROUSEL APP */}
+          <div style={{ background: 'var(--surface-container-low)', padding: '40px', borderRadius: 'var(--xl-radius)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', margin: 0 }}>Carrusel de Pantalla Principal</h3>
+                <p style={{ color: 'var(--on-surface-variant)', marginTop: '8px' }}>El listado de imágenes animadas que deslizarán solas debajo del menú principal.</p>
+              </div>
+              <label className="btn">
+                <span className="material-symbols-outlined">add_photo_alternate</span>
+                Añadir Banner
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
+                  const file = e.target.files[0];
+                  if(!file) return;
+                  if(file.size > 2 * 1024 * 1024) return alert('La imagen es demasiado pesada. Máximo 2MB.');
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const base64 = reader.result;
+                    updateSettings({ ...settings, campaignBanners: [...(settings.campaignBanners || []), base64] });
+                  };
+                  reader.readAsDataURL(file);
+                }} />
+              </label>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
+              {(settings.campaignBanners || []).map((banner, idx) => (
+                <div key={idx} style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '21/9', background: 'var(--surface-container)' }}>
+                  <img src={banner} alt={`Banner ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button onClick={() => {
+                    if (window.confirm('¿Borrar este banner permanentemente del carrusel?')) {
+                      const newBanners = [...settings.campaignBanners];
+                      newBanners.splice(idx, 1);
+                      updateSettings({ ...settings, campaignBanners: newBanners });
+                    }
+                  }} style={{ position: 'absolute', top: '8px', right: '8px', background: 'var(--error)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
+                  </button>
+                </div>
+              ))}
+              {(!settings.campaignBanners || settings.campaignBanners.length === 0) && (
+                <div style={{ padding: '32px', gridColumn: '1 / -1', border: '2px dashed var(--outline-variant)', borderRadius: '16px', textAlign: 'center', color: 'var(--on-surface-variant)' }}>
+                  No hay banners subidos todavía. Añade varias imágenes rectangulares/horizontales para tu página web.
+                </div>
+              )}
+            </div>
+          </div>
+
           {offers.length === 0 ? (
             <div style={{ padding: '80px', textAlign: 'center', background: 'var(--surface-container-low)', borderRadius: 'var(--xl-radius)', border: '2px dashed var(--outline-variant)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '3rem', color: 'var(--on-surface-variant)', marginBottom: '16px' }}>celebration</span>
