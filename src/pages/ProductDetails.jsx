@@ -221,6 +221,7 @@ export default function ProductDetails() {
                       <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i>
                     </a>
                   </div>
+                </div>
                 );
               })
             ) : (
