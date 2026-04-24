@@ -38,6 +38,7 @@ const emptyOffer = {
   accentColor: '#00f0ff',
   active: true,
   image: '',
+  applicableProducts: [],
 };
 
 export default function Admin() {
@@ -1357,6 +1358,42 @@ const {
                 onChange={(e) => setNewOffer({ ...newOffer, image: e.target.value })} 
                 onUpload={(e) => handleFileUpload(e, 'image', false, (base64) => setNewOffer({ ...newOffer, image: base64 }))}
               />
+
+              <div style={{ background: 'var(--surface-container-highest)', padding: '32px', borderRadius: 'var(--lg-radius)', marginTop: '16px' }}>
+                <label className="form-label">Familias Aplicables</label>
+                <p style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', marginBottom: '16px' }}>Selecciona los equipos que tendrán este descuento. Si no seleccionas ninguno, la oferta no se aplicará a ningún equipo del catálogo.</p>
+                <div style={{ display: 'grid', gap: '24px', maxHeight: '300px', overflowY: 'auto', padding: '16px', background: 'var(--surface-container)', borderRadius: 'var(--md-radius)' }}>
+                  {departments.map(dept => {
+                    const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
+                    if (deptProducts.length === 0) return null;
+                    return (
+                      <div key={dept}>
+                        <div style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '8px', borderBottom: '1px solid var(--outline-variant)', paddingBottom: '4px' }}>{dept}</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px' }}>
+                          {deptProducts.map(p => (
+                            <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', cursor: 'pointer', color: 'var(--on-surface)' }}>
+                              <input 
+                                type="checkbox" 
+                                checked={(newOffer.applicableProducts || []).includes(p.id)}
+                                onChange={(e) => {
+                                  const checked = e.target.checked;
+                                  const current = newOffer.applicableProducts || [];
+                                  if (checked) {
+                                    setNewOffer({ ...newOffer, applicableProducts: [...current, p.id] });
+                                  } else {
+                                    setNewOffer({ ...newOffer, applicableProducts: current.filter(id => id !== p.id) });
+                                  }
+                                }}
+                              />
+                              {p.brand} {p.model}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
               <div style={{ background: 'var(--surface-container-highest)', padding: '32px', borderRadius: 'var(--lg-radius)', marginTop: '16px' }}>
                 <label className="form-label">Vista Previa Editorial</label>

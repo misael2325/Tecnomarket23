@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function ProductDetails() {
   const { id } = useParams();
-  const { products, settings, loading, updateSettings } = useInventory();
+  const { products, settings, offers = [], loading, updateSettings } = useInventory();
   const { currentUser, loginWithGoogle } = useAuth();
   
   const product = products.find(p => p.id === id);
@@ -46,6 +46,12 @@ export default function ProductDetails() {
     setReviewSubmitted(true);
   };
 
+  const isOfferLive = (offer) => {
+    if (!offer.active) return false;
+    const today = new Date().toISOString().split('T')[0];
+    return (!offer.startDate || today >= offer.startDate) && (!offer.endDate || today <= offer.endDate);
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [id]);
@@ -65,6 +71,8 @@ export default function ProductDetails() {
 
   const rawPhone = (settings.contactPhone || '').replace(/\D/g, '');
   const waBase = `https://wa.me/${rawPhone}`;
+
+  const activeOffer = product ? offers.find(o => isOfferLive(o) && (o.applicableProducts || []).includes(product.id)) : null;
 
   return (
     <>
@@ -128,48 +136,82 @@ export default function ProductDetails() {
               <span></span>
             </div>
 
+            {activeOffer && (
+              <div style={{ background: activeOffer.bgColor || 'var(--surface-container-low)', padding: '24px', borderRadius: 'var(--lg-radius)', border: `2px solid ${activeOffer.accentColor || 'var(--primary)'}`, marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
+                <span style={{ fontSize: '3rem' }}>{activeOffer.emoji}</span>
+                <div>
+                  <h3 style={{ fontFamily: 'var(--font-headline)', color: 'white', marginBottom: '8px', fontSize: '1.5rem', fontWeight: 800 }}>{activeOffer.name}</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.8)', margin: 0, fontSize: '0.95rem' }}>{activeOffer.description}</p>
+                  <div style={{ background: activeOffer.accentColor || 'var(--primary)', color: 'black', padding: '6px 16px', borderRadius: '100px', fontWeight: 900, display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '12px', fontSize: '0.85rem' }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>sell</span>
+                    Aplicado {activeOffer.discount}% de Descuento
+                  </div>
+                </div>
+              </div>
+            )}
+
             {product.stock && product.stock.length > 0 ? (
-              product.stock.map((item, index) => (
-                <div key={item.id} className={`stock-row ${index % 2 === 0 ? 'stock-row-even' : 'stock-row-odd'}`}>
-                  <div className="stock-cell stock-model">
-                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: 'var(--on-surface-variant)' }}>smartphone</span>
-                    <strong>{item.specificModel}</strong>
-                  </div>
+              product.stock.map((item, index) => {
+                const originalPrice = Number(item.price);
+                const discountedPrice = activeOffer ? originalPrice - (originalPrice * (activeOffer.discount / 100)) : originalPrice;
 
-                  {product.department === 'Celulares' && (
-                    <div className="stock-cell">
-                      <span className="battery-pill">
-                        🔋 {item.battery}%
-                      </span>
+                return (
+                  <div key={item.id} className={`stock-row ${index % 2 === 0 ? 'stock-row-even' : 'stock-row-odd'}`}>
+                    <div className="stock-cell stock-model">
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: 'var(--on-surface-variant)' }}>smartphone</span>
+                      <strong>{item.specificModel}</strong>
                     </div>
-                  )}
 
-                  <div className="stock-cell">
-                    <span className="grade-pill">{item.grade}</span>
-                  </div>
+                    {product.department === 'Celulares' && (
+                      <div className="stock-cell">
+                        <span className="battery-pill">
+                          🔋 {item.battery}%
+                        </span>
+                      </div>
+                    )}
 
-                  <div className="stock-cell stock-price">
-                    RD$ {Number(item.price).toLocaleString('en-US')}
-                  </div>
+                    <div className="stock-cell">
+                      <span className="grade-pill">{item.grade}</span>
+                    </div>
 
-                  <div className="stock-cell stock-action">
-                    <a
-                      href={(() => {
-                        const batteryLine = product.department === 'Celulares'
-                          ? `\n🔋 *Salud de Batería:* ${item.battery}%` : '';
-                        const msg =
+                    <div className="stock-cell stock-price" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                      {activeOffer ? (
+                        <>
+                          <span style={{ textDecoration: 'line-through', color: 'var(--on-surface-variant)', fontSize: '0.8rem', lineHeight: 1 }}>
+                            RD$ {originalPrice.toLocaleString('en-US')}
+                          </span>
+                          <span style={{ color: activeOffer.accentColor || 'var(--primary)', fontWeight: 900, fontSize: '1.1rem' }}>
+                            RD$ {discountedPrice.toLocaleString('en-US')}
+                          </span>
+                        </>
+                      ) : (
+                        `RD$ ${originalPrice.toLocaleString('en-US')}`
+                      )}
+                    </div>
+
+                    <div className="stock-cell stock-action">
+                      <a
+                        href={(() => {
+                          const batteryLine = product.department === 'Celulares'
+                            ? `\n🔋 *Salud de Batería:* ${item.battery}%` : '';
+                          
+                          const priceText = activeOffer 
+                            ? `RD$ ${discountedPrice.toLocaleString('en-US')} (con descuento ${activeOffer.name})`
+                            : `RD$ ${originalPrice.toLocaleString('en-US')}`;
+
+                          const msg =
 `👋 ¡Hola! Estoy interesado/a en el siguiente equipo:
 
 ━━━━━━━━━━━━━━━━━━━━
 📱 *Familia:* ${product.model}
 📦 *Modelo Exacto:* ${item.specificModel}
 ⭐ *Estado:* ${item.grade}${batteryLine}
-💰 *Precio:* RD$ ${Number(item.price).toLocaleString('en-US')}
+💰 *Precio:* ${priceText}
 ━━━━━━━━━━━━━━━━━━━━
 
 ¿Este equipo sigue disponible? 😊`;
-                        return `${waBase}?text=${encodeURIComponent(msg)}`;
-                      })()}
+                          return `${waBase}?text=${encodeURIComponent(msg)}`;
+                        })()}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn"
@@ -179,8 +221,8 @@ export default function ProductDetails() {
                       <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i>
                     </a>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="empty-stock">
                 <span className="material-symbols-outlined" style={{ fontSize: '3rem', opacity: 0.3 }}>inventory_2</span>

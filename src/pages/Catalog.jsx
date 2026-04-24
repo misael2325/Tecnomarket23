@@ -4,7 +4,7 @@ import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function Catalog() {
-  const { products = [], settings = {}, loading } = useInventory();
+  const { products = [], settings = {}, offers = [], loading } = useInventory();
   const { logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,6 +26,12 @@ export default function Catalog() {
     // Scroll to top when changing department inside component
     window.scrollTo(0, 0);
   }, [selectedDept]);
+
+  const isOfferLive = (offer) => {
+    if (!offer.active) return false;
+    const today = new Date().toISOString().split('T')[0];
+    return (!offer.startDate || today >= offer.startDate) && (!offer.endDate || today <= offer.endDate);
+  };
 
   // Sync state with URL params if someone clicks a category link
   useEffect(() => {
@@ -133,6 +139,9 @@ export default function Catalog() {
                         ? Math.min(...stockItems.map(s => Number(s.price) || 0))
                         : (Number(product.basePrice) || 0);
 
+                      const activeOffer = offers.find(o => isOfferLive(o) && (o.applicableProducts || []).includes(product.id));
+                      const discountedPrice = activeOffer ? minPrice - (minPrice * (activeOffer.discount / 100)) : minPrice;
+
                       return (
                         <Link to={`/device/${product.id}`} key={product.id} className="card">
                           <div className="card-img-wrapper">
@@ -140,11 +149,32 @@ export default function Catalog() {
                             {stockItems.length === 0 && (
                               <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.7)', padding: '4px 10px', borderRadius: '4px', fontSize: '0.7rem' }}>Agotado</div>
                             )}
+                            {activeOffer && stockItems.length > 0 && (
+                              <div style={{ position: 'absolute', top: '10px', left: '10px', background: activeOffer.accentColor || 'var(--primary)', color: 'black', padding: '4px 10px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+                                <span>{activeOffer.emoji}</span> {activeOffer.name}
+                              </div>
+                            )}
                           </div>
                           <div className="card-info">
                             <h3 className="card-title">{product.model}</h3>
-                            <div className="card-price">
-                              {stockItems.length > 0 ? `RD$ ${minPrice.toLocaleString('en-US')}` : 'Próximamente'}
+                            <div className="card-price" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                              {stockItems.length > 0 ? (
+                                activeOffer ? (
+                                  <>
+                                    <span style={{ textDecoration: 'line-through', color: 'var(--on-surface-variant)', fontSize: '0.9rem' }}>
+                                      RD$ {minPrice.toLocaleString('en-US')}
+                                    </span>
+                                    <span style={{ color: activeOffer.accentColor || 'var(--primary)', fontWeight: 900, fontSize: '1.2rem' }}>
+                                      RD$ {discountedPrice.toLocaleString('en-US')}
+                                    </span>
+                                    <span style={{ background: activeOffer.accentColor || 'var(--primary)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800 }}>
+                                      -{activeOffer.discount}%
+                                    </span>
+                                  </>
+                                ) : (
+                                  `RD$ ${minPrice.toLocaleString('en-US')}`
+                                )
+                              ) : 'Próximamente'}
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>
                               <span>Ver detalles</span>
