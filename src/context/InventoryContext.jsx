@@ -61,6 +61,9 @@ export function InventoryProvider({ children }) {
           // Solo actualizamos lo NO estructural para no borrar departamentos del usuario
           const { departments, ...restDefault } = defaultSettings;
           setDoc(doc(db, "settings", "global"), restDefault, { merge: true });
+        } else if (data.heroTitle !== defaultSettings.heroTitle) {
+          // Auto-actualizar si el titulo hero cambia en los defaults
+          setDoc(doc(db, "settings", "global"), { heroTitle: defaultSettings.heroTitle, heroTitleHighlight: defaultSettings.heroTitleHighlight }, { merge: true });
         }
         setSettings(prev => ({ 
           ...defaultSettings, 
