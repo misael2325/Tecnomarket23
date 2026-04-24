@@ -11,6 +11,7 @@ export default function Catalog() {
   
   const queryParams = new URLSearchParams(location.search);
   const initialDept = queryParams.get('dept') || 'Todos';
+  const offerId = queryParams.get('offer');
   
   const [selectedDept, setSelectedDept] = React.useState(initialDept);
 
@@ -40,6 +41,8 @@ export default function Catalog() {
       setSelectedDept(qDept);
     }
   }, [location.search, selectedDept]);
+
+  const targetOffer = offerId ? offers.find(o => o.id === offerId && isOfferLive(o)) : null;
 
   const handleSelectDept = (dept) => {
     setSelectedDept(dept);
@@ -117,11 +120,32 @@ export default function Catalog() {
           <p>Equipos certificados con garantía real. Selecciona tu unidad para ver detalles específicos.</p>
         </div>
 
+        {/* Banner de Colección Filtrada */}
+        {targetOffer && (
+          <div style={{ background: targetOffer.bgColor || 'var(--surface-container-low)', padding: '24px', borderRadius: 'var(--xl-radius)', marginBottom: '32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '24px', border: `1px solid ${targetOffer.accentColor || 'var(--primary)'}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <span style={{ fontSize: '3rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}>{targetOffer.emoji}</span>
+              <div>
+                <h2 style={{ fontFamily: 'var(--font-headline)', color: 'white', fontSize: '1.5rem', marginBottom: '4px' }}>Colección: {targetOffer.name}</h2>
+                <p style={{ color: 'var(--on-surface-variant)', margin: 0 }}>Estás viendo exclusivamente los equipos con este descuento especial.</p>
+              </div>
+            </div>
+            <Link to="/catalog" className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.05)' }}>
+              <span className="material-symbols-outlined">close</span> Quitar filtro
+            </Link>
+          </div>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '60px', maxWidth: '1400px', margin: '0 auto' }}>
           {activeDepts
             .filter(d => selectedDept === 'Todos' || d === selectedDept)
             .map(dept => {
-              const deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
+              let deptProducts = products.filter(p => (p.department || 'Celulares') === dept);
+              
+              if (targetOffer) {
+                deptProducts = deptProducts.filter(p => (targetOffer.applicableProducts || []).includes(p.id));
+              }
+
               if (deptProducts.length === 0) return null;
 
               return (

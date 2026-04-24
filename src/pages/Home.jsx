@@ -145,31 +145,49 @@ export default function Home() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', maxWidth: '1400px', margin: '0 auto' }}>
             {offers.filter(o => o.active).map(offer => (
-              <div key={offer.id} style={{ 
+              <Link to={`/catalog?offer=${offer.id}`} key={offer.id} style={{ 
                 background: offer.bgColor || 'var(--surface-container-low)', 
                 borderRadius: 'var(--xl-radius)', 
                 padding: '32px',
                 position: 'relative',
                 overflow: 'hidden',
-                border: offer.accentColor ? `2px solid ${offer.accentColor}` : 'none'
-              }}>
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '16px' }}>{offer.emoji}</span>
-                  <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', fontWeight: 800, color: 'white', marginBottom: '8px' }}>{offer.name}</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', marginBottom: '24px' }}>{offer.description}</p>
-                  
-                  {offer.discount > 0 && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: offer.accentColor || 'var(--primary)', color: 'black', padding: '8px 16px', borderRadius: '100px', fontWeight: 900, fontSize: '0.9rem' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>loyalty</span>
-                      {offer.discount}% OFF EXCLUSIVO
-                    </div>
-                  )}
-                </div>
-                {/* Background decorative image if uploaded */}
+                border: offer.accentColor ? `1px solid ${offer.accentColor}40` : '1px solid var(--outline-variant)',
+                textDecoration: 'none',
+                display: 'block',
+                boxShadow: `0 10px 30px ${offer.bgColor}40`,
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)'; e.currentTarget.style.boxShadow = `0 20px 40px ${offer.bgColor}80`; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = `0 10px 30px ${offer.bgColor}40`; }}
+              >
+                {/* Background decorative image with rich overlay */}
                 {offer.image && (
-                  <img src={offer.image} style={{ position: 'absolute', top: 0, right: 0, width: '60%', height: '100%', objectFit: 'cover', opacity: 0.15, maskImage: 'linear-gradient(to right, transparent, black)' }} alt="" />
+                  <div style={{ position: 'absolute', inset: 0, opacity: 0.3, mixBlendMode: 'overlay' }}>
+                    <img src={offer.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                  </div>
                 )}
-              </div>
+                
+                {/* Glassmorphism gradient overlay */}
+                <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${offer.bgColor}ee 0%, ${offer.accentColor || 'var(--primary)'}33 100%)`, zIndex: 0 }}></div>
+
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <span style={{ fontSize: '3.5rem', display: 'block', marginBottom: '16px', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))' }}>{offer.emoji}</span>
+                  <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.8rem', fontWeight: 800, color: 'white', marginBottom: '8px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{offer.name}</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem', marginBottom: '32px', lineHeight: 1.5, flex: 1 }}>{offer.description}</p>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+                    {offer.discount > 0 ? (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: offer.accentColor || 'var(--primary)', color: 'black', padding: '10px 20px', borderRadius: '100px', fontWeight: 900, fontSize: '0.95rem', boxShadow: '0 4px 15px rgba(0,0,0,0.3)' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>sell</span>
+                        {offer.discount}% OFF EXCLUSIVO
+                      </div>
+                    ) : <div></div>}
+                    <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)', color: 'white' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.5rem' }}>arrow_forward</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
