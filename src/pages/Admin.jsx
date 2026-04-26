@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const OFFER_TEMPLATES = [
   { name: 'Black Friday', emoji: '🖤', discount: 30, color: '#111111', accentColor: '#f59e0b' },
@@ -56,7 +57,7 @@ const {
   // --- Stock Tab State ---
   const [selectedProduct, setSelectedProduct] = useState('');
   const [showStockModal, setShowStockModal] = useState(false);
-  const [newStock, setNewStock] = useState({ specificModel: '', grade: 'A', battery: 100, price: '' });
+  const [newStock, setNewStock] = useState({ specificModel: '', storage: '', grade: 'A', battery: 100, price: '' });
 
   // --- Settings Tab State ---
   const [localSettings, setLocalSettings] = useState(settings);
@@ -239,6 +240,7 @@ const {
     const newItem = {
       id: Date.now().toString(),
       specificModel: newStock.specificModel,
+      storage: newStock.storage || '',
       grade: newStock.grade,
       battery: Number(newStock.battery),
       price: Number(newStock.price) || product.basePrice
@@ -247,7 +249,99 @@ const {
     const updated = { ...product, stock: [...product.stock, newItem] };
     updateProduct(updated);
     setShowStockModal(false);
-    setNewStock({ specificModel: '', grade: 'A', battery: 100, price: '' });
+    setNewStock({ specificModel: '', storage: '', grade: 'A', battery: 100, price: '' });
+  };
+
+  const handleExcelUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(firstSheet);
+
+        const currentProducts = [...products];
+        const newProductsToAdd = [];
+        const missingFamilies = new Set();
+        let addedCount = 0;
+
+        for (const row of rows) {
+          const familia = row['Familia'] || row['familia'];
+          const modeloEspecifico = row['Modelo Especifico'] || row['modelo especifico'] || row['Modelo Específico'];
+          const almacenamiento = row['Almacenamiento'] || row['almacenamiento'] || '';
+          const grado = row['Grado'] || row['grado'] || 'A';
+          const bateria = row['Bateria'] || row['Batería'] || row['bateria'] || 100;
+          const precio = row['Precio'] || row['precio'] || 0;
+          const departamento = row['Departamento'] || row['departamento'] || 'Celulares';
+
+          if (!familia || !modeloEspecifico) continue;
+
+          // Buscar la familia en los productos existentes o en los nuevos que se van a crear
+          let productRef = currentProducts.find(p => p.model === familia) || newProductsToAdd.find(p => p.model === familia);
+
+          if (!productRef) {
+            missingFamilies.add(familia);
+            // Pre-crear la familia temporalmente en la lista a guardar
+            productRef = {
+              id: `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              brand: familia.split(' ')[0] || 'Desconocida', // Guess brand
+              model: familia,
+              department: departamento,
+              description: `Familia ${familia} creada por importación masiva.`,
+              image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800',
+              basePrice: Number(precio) || 0,
+              stock: [],
+              isNew: true
+            };
+            newProductsToAdd.push(productRef);
+          }
+
+          productRef.stock.push({
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            specificModel: modeloEspecifico,
+            storage: almacenamiento.toString(),
+            grade: grado,
+            battery: Number(bateria),
+            price: Number(precio)
+          });
+          addedCount++;
+        }
+
+        if (missingFamilies.size > 0) {
+          const conf = window.confirm(`Se encontraron ${missingFamilies.size} familias nuevas que no están en tu catálogo (Ej: ${[...missingFamilies].slice(0,3).join(', ')}). ¿Deseas crearlas automáticamente e importar sus equipos?`);
+          if (!conf) return;
+        }
+
+        // Add the new products to firebase
+        for (const newProd of newProductsToAdd) {
+          const { isNew, ...prodToSave } = newProd;
+          await addProduct(prodToSave);
+          currentProducts.push(prodToSave); // To keep the local reference valid for existing updates
+        }
+
+        // Update the existing products that got new stock
+        for (const prod of currentProducts) {
+          // If we added stock to an existing product
+          if (!newProductsToAdd.find(np => np.id === prod.id)) {
+            const originalProduct = products.find(p => p.id === prod.id);
+            if (originalProduct && originalProduct.stock.length !== prod.stock.length) {
+                await updateProduct(prod);
+            }
+          }
+        }
+
+        alert(`✅ Importación finalizada. ${addedCount} equipos procesados.`);
+      } catch (err) {
+        console.error(err);
+        alert('❌ Error leyendo el archivo Excel. Revisa el formato.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = ''; // reset input
   };
 
   const handleDeleteStock = (productId, stockId) => {
@@ -850,10 +944,17 @@ const {
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2rem', letterSpacing: '-1px' }}>Existencias Físicas</h2>
-                <button className="btn" onClick={() => { setSelectedProduct(products[0]?.id || ''); setShowStockModal(true); }}>
-                  <span className="material-symbols-outlined">add_box</span>
-                  Ingresar Equipo
-                </button>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <label className="btn btn-outline" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="material-symbols-outlined">upload_file</span>
+                    Importar Excel
+                    <input type="file" accept=".xlsx, .xls" style={{ display: 'none' }} onChange={handleExcelUpload} />
+                  </label>
+                  <button className="btn" onClick={() => { setSelectedProduct(products[0]?.id || ''); setShowStockModal(true); }}>
+                    <span className="material-symbols-outlined">add_box</span>
+                    Ingresar Equipo
+                  </button>
+                </div>
               </div>
                 <div style={{ display: 'grid', gap: '48px' }}>
                   {departments.map(dept => {
@@ -885,15 +986,23 @@ const {
                                     <div key={item.id} className="device-item" style={{ background: 'transparent' }}>
                                       {editingStockItems[`${product.id}-${item.id}`] ? (
                                         <>
-                                          <div style={{ display: 'grid', gridTemplateColumns: dept === 'Celulares' ? '1.5fr 60px 1fr 1fr' : '2fr 1fr 1fr', gap: '8px', width: '100%' }}>
+                                          <div style={{ display: 'grid', gridTemplateColumns: dept === 'Celulares' ? '1.2fr 80px 60px 1fr 1fr' : '1.5fr 80px 1fr 1fr', gap: '8px', width: '100%' }}>
                                             <input
                                               type="text"
                                               value={editingStockItems[`${product.id}-${item.id}`].specificModel}
                                               onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], specificModel: e.target.value } }))}
                                               className="form-input"
                                               style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
-                                              placeholder="Modelo Exacto"
+                                              placeholder="Modelo"
                                               autoFocus
+                                            />
+                                            <input
+                                              type="text"
+                                              value={editingStockItems[`${product.id}-${item.id}`].storage || ''}
+                                              onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], storage: e.target.value } }))}
+                                              className="form-input"
+                                              style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
+                                              placeholder="Disco"
                                             />
                                             {dept === 'Celulares' && (
                                               <input
@@ -902,7 +1011,7 @@ const {
                                                 onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], battery: e.target.value } }))}
                                                 className="form-input"
                                                 style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
-                                                placeholder="Batería %"
+                                                placeholder="Batt%"
                                               />
                                             )}
                                             <select
@@ -923,7 +1032,7 @@ const {
                                               onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], price: e.target.value } }))}
                                               className="form-input"
                                               style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
-                                              placeholder="Precio RD$"
+                                              placeholder="Precio"
                                               onKeyDown={e => { if (e.key === 'Enter') handleSaveStockEdit(product.id, item.id); if (e.key === 'Escape') setEditingStockItems(prev => { const n={...prev}; delete n[`${product.id}-${item.id}`]; return n; }); }}
                                             />
                                           </div>
@@ -945,7 +1054,14 @@ const {
                                       ) : (
                                         <>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                                            <span style={{ fontWeight: 800 }}>{item.specificModel}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                              <span style={{ fontWeight: 800 }}>{item.specificModel}</span>
+                                              {item.storage && (
+                                                <span style={{ background: 'var(--surface-container-high)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 900, border: '1px solid var(--outline-variant)' }}>
+                                                  {item.storage}
+                                                </span>
+                                              )}
+                                            </div>
                                             {dept === 'Celulares' && (
                                               <span style={{ color: 'var(--tertiary)', fontWeight: 800 }}>{item.battery}%</span>
                                             )}
@@ -1008,7 +1124,14 @@ const {
                                 {product.stock.map(item => (
                                   <div key={item.id} className="device-item" style={{ background: 'transparent' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                                      <span style={{ fontWeight: 800 }}>{item.specificModel}</span>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontWeight: 800 }}>{item.specificModel}</span>
+                                        {item.storage && (
+                                          <span style={{ background: 'var(--surface-container-high)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 900, border: '1px solid var(--outline-variant)' }}>
+                                            {item.storage}
+                                          </span>
+                                        )}
+                                      </div>
                                       <div className={`device-grade grade-${item.grade.replace(/\s+/g, '-').toLowerCase()}`} style={{ border: 'none', background: 'var(--surface-container-highest)' }}>
                                         {item.grade}
                                       </div>
@@ -1201,9 +1324,15 @@ const {
                 </select>
               </div>
               
-              <div>
-                <label className="form-label">Modelo Detallado (Ej: iPhone 15 Pro Max 1TB)</label>
-                <input type="text" required placeholder="Especificaciones exactas..." value={newStock.specificModel} onChange={e => setNewStock({ ...newStock, specificModel: e.target.value })} className="form-input" />
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+                <div>
+                  <label className="form-label">Modelo Exacto (Ej: Pro Max)</label>
+                  <input type="text" required placeholder="Solo el nombre..." value={newStock.specificModel} onChange={e => setNewStock({ ...newStock, specificModel: e.target.value })} className="form-input" />
+                </div>
+                <div>
+                  <label className="form-label">Almacenamiento</label>
+                  <input type="text" placeholder="Ej: 256GB" value={newStock.storage} onChange={e => setNewStock({ ...newStock, storage: e.target.value })} className="form-input" />
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>

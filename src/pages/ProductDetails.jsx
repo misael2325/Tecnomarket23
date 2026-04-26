@@ -157,9 +157,25 @@ export default function ProductDetails() {
 
                 return (
                   <div key={item.id} className={`stock-row ${index % 2 === 0 ? 'stock-row-even' : 'stock-row-odd'}`}>
-                    <div className="stock-cell stock-model">
-                      <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: 'var(--on-surface-variant)' }}>smartphone</span>
-                      <strong>{item.specificModel}</strong>
+                    <div className="stock-cell stock-model" style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: 'var(--on-surface-variant)' }}>smartphone</span>
+                        <strong style={{ fontSize: '1.05rem' }}>{item.specificModel}</strong>
+                      </div>
+                      {item.storage && (
+                        <span style={{ 
+                          background: 'var(--surface-container-highest)', 
+                          color: 'var(--on-surface)', 
+                          padding: '2px 10px', 
+                          borderRadius: '6px', 
+                          fontSize: '0.75rem', 
+                          fontWeight: 800,
+                          border: '1px solid var(--outline-variant)',
+                          marginLeft: '26px'
+                        }}>
+                          {item.storage}
+                        </span>
+                      )}
                     </div>
 
                     {product.department === 'Celulares' && (
@@ -205,6 +221,7 @@ export default function ProductDetails() {
 ━━━━━━━━━━━━━━━━━━━━
 📱 *Familia:* ${product.model}
 📦 *Modelo Exacto:* ${item.specificModel}
+💾 *Almacenamiento:* ${item.storage || 'N/A'}
 ⭐ *Estado:* ${item.grade}${batteryLine}
 💰 *Precio:* ${priceText}
 ━━━━━━━━━━━━━━━━━━━━

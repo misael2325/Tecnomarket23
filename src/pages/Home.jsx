@@ -107,7 +107,7 @@ export default function Home() {
       <section className="hero">
         <span className="badge">Tecnología a tu alcance</span>
         <h1>
-          Toda tu tecnología a un clic con <span>{settings.heroTitle || 'Sailin TecnoSmartPhone'}</span>
+          {settings.heroTitle || 'Tecnología Y Solución en'} <span>{settings.heroTitleHighlight || 'SAILIN TECNO SMARTPHONE'}</span>
         </h1>
         
         {/* CARRUSEL DE CAMPAÑAS DEBAJO DEL TITULO */}

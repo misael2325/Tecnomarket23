@@ -7,7 +7,7 @@ const InventoryContext = createContext();
 const defaultSettings = {
   storeName: 'STS | SAILIN TECNO',
   heroBadge: 'Tecnología a tu Alcance',
-  heroTitle: 'Tu próximo smartphone en',
+  heroTitle: 'Tecnología Y Solución en',
   heroTitleHighlight: 'SAILIN TECNO SMARTPHONE',
   heroDescription: 'Tu destino tecnológico de confianza. Equipos de alta gama, accesorios originales y el mejor servicio técnico garantizado.',
   aboutTitle: 'Nuestra Historia',
