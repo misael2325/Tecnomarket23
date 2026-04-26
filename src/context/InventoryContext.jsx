@@ -17,7 +17,7 @@ const defaultSettings = {
   stat1Label: 'Clientes Felices',
   stat2Value: '1 Año',
   stat2Label: 'Garantía Full',
-  aboutImage: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
+  aboutImage: 'https://scontent-mia5-2.xx.fbcdn.net/v/t39.30808-6/470188541_899845728965657_735734168224639359_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=53a332&_nc_ohc=YxtqpRIyp94Q7kNvwFEdGtJ&_nc_oc=AdrFT27ril35f78A29uTjIkbpMmxmLJRhR-QMyP6OK9vMTDq8vRBt3L0qoWO9Koz1Hw&_nc_zt=23&_nc_ht=scontent-mia5-2.xx&_nc_gid=PtaW9THVp9FSykkv7lbPoA&_nc_ss=7b2a8&oh=00_Af2k-HZ0dhPPF6mbeQ0PMQm6WNLSIy3ExHNJQucUCVxXRg&oe=69F3EDE5',
   footerDesc: 'Centro de importación y distribución de dispositivos móviles, inteligente y servicio autorizado.',
   contactAddress: 'STS | SAILIN TECNO SMARTPHONE 8QQ7+9R, Arroyo Hondo 94000',
   contactPhone: '+1 (829) 424-1236',
