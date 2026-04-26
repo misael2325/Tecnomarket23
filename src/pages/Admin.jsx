@@ -141,8 +141,32 @@ const {
         </label>
       </div>
       {value && (
-        <div style={{ marginTop: '16px', position: 'relative', borderRadius: 'var(--lg-radius)', overflow: 'hidden', height: '140px', background: 'var(--surface-container)' }}>
+        <div style={{ marginTop: '16px', position: 'relative', borderRadius: 'var(--lg-radius)', overflow: 'hidden', height: '140px', background: 'var(--surface-container)', border: '1px solid var(--outline-variant)' }}>
           <img src={value} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <button 
+            type="button"
+            onClick={() => onChange({ target: { name, value: '' } })}
+            style={{ 
+              position: 'absolute', 
+              top: '12px', 
+              right: '12px', 
+              background: 'rgba(255, 78, 107, 0.9)', 
+              color: 'white', 
+              border: 'none', 
+              width: '32px', 
+              height: '32px', 
+              borderRadius: '50%', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              transition: 'var(--transition)'
+            }}
+            title="Eliminar imagen"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>close</span>
+          </button>
         </div>
       )}
     </div>
@@ -1235,14 +1259,36 @@ const {
               {(settings.campaignBanners || []).map((banner, idx) => (
                 <div key={idx} style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '21/9', background: 'var(--surface-container)' }}>
                   <img src={banner} alt={`Banner ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <button onClick={() => {
-                    if (window.confirm('¿Borrar este banner permanentemente del carrusel?')) {
-                      const newBanners = [...settings.campaignBanners];
-                      newBanners.splice(idx, 1);
-                      updateSettings({ ...settings, campaignBanners: newBanners });
-                    }
-                  }} style={{ position: 'absolute', top: '8px', right: '8px', background: 'var(--error)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('¿Borrar este banner permanentemente del carrusel?')) {
+                        const newBanners = [...settings.campaignBanners];
+                        newBanners.splice(idx, 1);
+                        updateSettings({ ...settings, campaignBanners: newBanners });
+                      }
+                    }} 
+                    style={{ 
+                      position: 'absolute', 
+                      top: '12px', 
+                      right: '12px', 
+                      background: 'rgba(255, 78, 107, 0.9)', 
+                      border: 'none', 
+                      color: 'white', 
+                      width: '36px', 
+                      height: '36px', 
+                      borderRadius: '50%', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '1.4rem' }}>delete</span>
                   </button>
                 </div>
               ))}
