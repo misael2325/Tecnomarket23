@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
+import VideoPlayer from '../components/VideoPlayer';
 
 function CampaignSlider({ banners }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -69,7 +70,7 @@ function CampaignSlider({ banners }) {
 }
 
 export default function Home() {
-  const { settings = {}, offers = [] } = useInventory();
+  const { settings = {}, offers = [], videos = [] } = useInventory();
   const { currentUser, isAdmin, logout } = useAuth();
 
   // WhatsApp link
@@ -284,6 +285,35 @@ export default function Home() {
                 </div>
                 <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--on-surface-variant)', lineHeight: 1.6 }}>"{review.text}"</p>
               </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* VIDEO EXPERIENCE SECTION */}
+      {videos && videos.length > 0 && (
+        <section className="section" style={{ background: 'var(--surface-container-low)' }}>
+          <div className="section-title">
+            <span className="badge" style={{ background: 'var(--secondary)', color: 'white' }}>Contenido Exclusivo</span>
+            <h2>Experiencia en Video</h2>
+            <p>Mira unboxings, reviews y pruebas de rendimiento de nuestros equipos top.</p>
+          </div>
+          
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+            gap: '32px', 
+            maxWidth: '1400px', 
+            margin: '0 auto',
+            padding: '0 5%'
+          }}>
+            {videos.map(video => (
+              <VideoPlayer 
+                key={video.id}
+                url={video.url}
+                title={video.title}
+                description={video.description}
+              />
             ))}
           </div>
         </section>

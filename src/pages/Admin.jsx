@@ -47,6 +47,7 @@ const {
     products, addProduct, deleteProduct, updateProduct, 
     settings, updateSettings,
     offers, addOffer, updateOffer, deleteOffer,
+    videos, addVideo, deleteVideo,
     departments, updateDepartments, restoreBackup
   } = useInventory();
   
@@ -73,6 +74,10 @@ const {
   // --- Offers Tab State ---
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [newOffer, setNewOffer] = useState(emptyOffer);
+
+  // --- Videos Tab State ---
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [newVideo, setNewVideo] = useState({ title: '', url: '', description: '' });
 
   // --- Price Editing State ---
   // key: `${productId}-${stockId}` => stock item object
@@ -404,6 +409,15 @@ const {
     return (!offer.startDate || today >= offer.startDate) && (!offer.endDate || today <= offer.endDate);
   };
 
+  // --- VIDEOS HANDLERS ---
+  const handleSaveVideo = (e) => {
+    e.preventDefault();
+    if (!newVideo.url) return;
+    addVideo(newVideo);
+    setShowVideoModal(false);
+    setNewVideo({ title: '', url: '', description: '' });
+  };
+
   // --- USER MANAGEMENT HANDLERS ---
   const handleUpdateUserStatus = async (userId, newStatus) => {
     try {
@@ -563,6 +577,7 @@ const {
           { key: 'models',   label: 'Familias', icon: 'inventory_2' },
           { key: 'stock',    label: 'Inventario', icon: 'box' },
           { key: 'offers',   label: 'Campañas', icon: 'campaign' },
+          { key: 'videos',   label: 'Videos', icon: 'movie' },
           { key: 'users',    label: 'Equipo', icon: 'group' },
           { key: 'config',   label: 'Sistema', icon: 'settings' },
         ].filter(tab => (tab.key !== 'users' && tab.key !== 'config') || isSuperAdmin).map(tab => {
@@ -1677,6 +1692,73 @@ const {
                 );
               })()
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ===== VIDEOS TAB ===== */}
+      {activeTab === 'videos' && (
+        <div style={{ display: 'grid', gap: '48px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '2rem', letterSpacing: '-1px' }}>Biblioteca Multimedia</h2>
+              <p style={{ color: 'var(--on-surface-variant)' }}>Gestiona los videos de unboxings, reviews y promociones.</p>
+            </div>
+            <button className="btn" onClick={() => setShowVideoModal(true)}>
+              <span className="material-symbols-outlined">add_circle</span>
+              Añadir Video
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '24px' }}>
+            {videos.length === 0 ? (
+              <div style={{ gridColumn: '1 / -1', padding: '80px', textAlign: 'center', background: 'var(--surface-container-low)', borderRadius: 'var(--xl-radius)' }}>
+                <p style={{ color: 'var(--on-surface-variant)' }}>No hay videos en la galería aún.</p>
+              </div>
+            ) : (
+              videos.map(video => (
+                <div key={video.id} style={{ background: 'var(--surface-container-low)', borderRadius: 'var(--lg-radius)', overflow: 'hidden', border: '1px solid var(--outline-variant)' }}>
+                  <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface-container)' }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{video.title || 'Sin título'}</span>
+                    <button onClick={() => deleteVideo(video.id)} style={{ background: 'none', border: 'none', color: 'var(--error)', cursor: 'pointer' }}>
+                      <span className="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                  <div style={{ padding: '20px' }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--primary)', marginBottom: '8px', wordBreak: 'break-all' }}>{video.url}</p>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', margin: 0 }}>{video.description}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===== MODAL: NEW VIDEO ===== */}
+      {showVideoModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--scrim)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, backdropFilter: 'blur(12px)' }}>
+          <div style={{ background: 'var(--surface-container-high)', borderRadius: 'var(--xl-radius)', padding: '48px', width: '90%', maxWidth: '600px' }}>
+            <h2 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.8rem', fontWeight: 800, marginBottom: '24px' }}>Añadir Nuevo Contenido</h2>
+            <form onSubmit={handleSaveVideo} style={{ display: 'grid', gap: '24px' }}>
+              <div>
+                <label className="form-label">Título del Video</label>
+                <input type="text" value={newVideo.title} onChange={e => setNewVideo({ ...newVideo, title: e.target.value })} className="form-input" placeholder="Ej: Unboxing iPhone 15 Pro Max" required />
+              </div>
+              <div>
+                <label className="form-label">Enlace (URL)</label>
+                <input type="url" value={newVideo.url} onChange={e => setNewVideo({ ...newVideo, url: e.target.value })} className="form-input" placeholder="https://www.youtube.com/watch?v=..." required />
+                <p style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', marginTop: '8px' }}>Soporta YouTube, Facebook, TikTok, Instagram, Vimeo y links directos.</p>
+              </div>
+              <div>
+                <label className="form-label">Descripción Corta</label>
+                <textarea rows="3" value={newVideo.description} onChange={e => setNewVideo({ ...newVideo, description: e.target.value })} className="form-input" placeholder="Breve descripción del contenido..." />
+              </div>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+                <button type="submit" className="btn" style={{ flex: 2 }}>Guardar Video</button>
+                <button type="button" className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowVideoModal(false)}>Cancelar</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

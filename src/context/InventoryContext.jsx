@@ -48,6 +48,7 @@ export function InventoryProvider({ children }) {
   const [products, setProducts] = useState([]);
   const [settings, setSettings] = useState(defaultSettings);
   const [offers, setOffers] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [departments, setDepartments] = useState(defaultSettings.departments);
 
@@ -103,10 +104,20 @@ export function InventoryProvider({ children }) {
       console.warn("Error leyendo ofertas de Firebase.", error);
     });
 
+    // Suscripción en Tiempo Real a Videos
+    const unsubVideos = onSnapshot(collection(db, "videos"), (snapshot) => {
+      const items = [];
+      snapshot.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+      setVideos(items);
+    }, (error) => {
+      console.warn("Error leyendo videos de Firebase.", error);
+    });
+
     return () => {
       unsubSettings();
       unsubProducts();
       unsubOffers();
+      unsubVideos();
     };
   }, []);
 
@@ -167,6 +178,20 @@ export function InventoryProvider({ children }) {
     } catch (e) { console.error("Error eliminando oferta: ", e); }
   };
 
+  // Controladores de Videos
+  const addVideo = async (video) => {
+    try {
+      const id = 'video-' + Date.now();
+      await setDoc(doc(db, "videos", id), { ...video, id });
+    } catch (e) { console.error("Error creando video: ", e); }
+  };
+
+  const deleteVideo = async (id) => {
+    try {
+      await deleteDoc(doc(db, "videos", id));
+    } catch (e) { console.error("Error eliminando video: ", e); }
+  };
+
   const restoreBackup = async (backupData) => {
     try {
       const batch = writeBatch(db);
@@ -203,6 +228,7 @@ export function InventoryProvider({ children }) {
       products, addProduct, updateProduct, deleteProduct,
       settings, updateSettings, loading,
       offers, addOffer, updateOffer, deleteOffer,
+      videos, addVideo, deleteVideo,
       departments, updateDepartments,
       restoreBackup
     }}>
