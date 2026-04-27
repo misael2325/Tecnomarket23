@@ -80,8 +80,11 @@ export default function Home() {
   return (
     <>
       <nav className="glass-effect">
-        <Link to="/" className="nav-brand">
-          {settings.storeName || 'Sailin Tecno'}
+        <Link to="/" className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {settings.heroImage && (
+            <img src={settings.heroImage} alt="Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+          )}
+          <span>{settings.storeName || 'STS | SAILIN TECNO'}</span>
         </Link>
         <div className="nav-links">
           <Link to="/" className="active">Inicio</Link>
