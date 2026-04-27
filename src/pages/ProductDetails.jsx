@@ -132,11 +132,12 @@ export default function ProductDetails() {
           <div className="stock-table">
             {/* HEADER ROW */}
             <div className="stock-header-row">
-              <span>Modelo</span>
-              {product.department === 'Celulares' && <span>Batería</span>}
-              <span>Estado</span>
-              <span>Precio</span>
-              <span></span>
+              <span style={{ flex: 3 }}>Modelo</span>
+              <span style={{ flex: 1.5 }}>Capacidad</span>
+              {product.department === 'Celulares' && <span style={{ flex: 1 }}>Batería</span>}
+              <span style={{ flex: 1.5 }}>Estado</span>
+              <span style={{ flex: 2 }}>Precio</span>
+              <span style={{ flex: 1.5 }}></span>
             </div>
 
             {activeOffer && (
@@ -160,40 +161,40 @@ export default function ProductDetails() {
 
                 return (
                   <div key={item.id} className={`stock-row ${index % 2 === 0 ? 'stock-row-even' : 'stock-row-odd'}`}>
-                    <div className="stock-cell stock-model" style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: 'var(--on-surface-variant)' }}>smartphone</span>
-                        <strong style={{ fontSize: '1.05rem' }}>{item.specificModel}</strong>
-                      </div>
-                      {item.storage && (
+                    <div className="stock-cell" style={{ flex: 3, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: 'var(--on-surface-variant)' }}>smartphone</span>
+                      <strong style={{ fontSize: '1.05rem' }}>{item.specificModel}</strong>
+                    </div>
+
+                    <div className="stock-cell" style={{ flex: 1.5 }}>
+                      {item.storage ? (
                         <span style={{ 
                           background: 'var(--surface-container-highest)', 
                           color: 'var(--on-surface)', 
-                          padding: '2px 10px', 
+                          padding: '4px 10px', 
                           borderRadius: '6px', 
-                          fontSize: '0.75rem', 
+                          fontSize: '0.85rem', 
                           fontWeight: 800,
-                          border: '1px solid var(--outline-variant)',
-                          marginLeft: '26px'
+                          border: '1px solid var(--outline-variant)'
                         }}>
                           {item.storage}
                         </span>
-                      )}
+                      ) : '-'}
                     </div>
 
                     {product.department === 'Celulares' && (
-                      <div className="stock-cell">
+                      <div className="stock-cell" style={{ flex: 1 }}>
                         <span className="battery-pill">
                           🔋 {item.battery}%
                         </span>
                       </div>
                     )}
 
-                    <div className="stock-cell">
+                    <div className="stock-cell" style={{ flex: 1.5 }}>
                       <span className="grade-pill">{item.grade}</span>
                     </div>
 
-                    <div className="stock-cell stock-price" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+                    <div className="stock-cell" style={{ flex: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
                       {activeOffer ? (
                         <>
                           <span style={{ textDecoration: 'line-through', color: 'var(--on-surface-variant)', fontSize: '0.8rem', lineHeight: 1 }}>
@@ -204,7 +205,7 @@ export default function ProductDetails() {
                           </span>
                         </>
                       ) : (
-                        `RD$ ${originalPrice.toLocaleString('en-US')}`
+                        <span style={{ fontWeight: 900, color: 'var(--primary)' }}>RD$ {originalPrice.toLocaleString('en-US')}</span>
                       )}
                     </div>
 
