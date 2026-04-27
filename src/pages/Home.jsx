@@ -82,7 +82,7 @@ export default function Home() {
       <nav className="glass-effect">
         <Link to="/" className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {settings.heroImage && (
-            <img src={settings.heroImage} alt="Logo" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+            <img src={settings.heroImage} alt="Logo" style={{ height: '36px', width: '36px', objectFit: 'cover', borderRadius: '50%', border: '1px solid var(--outline-variant)' }} />
           )}
           <span>{settings.storeName || 'STS | SAILIN TECNO'}</span>
         </Link>
