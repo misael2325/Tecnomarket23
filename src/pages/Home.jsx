@@ -107,6 +107,13 @@ export default function Home() {
 
       <section className="hero">
         <span className="badge">Tecnología a tu alcance</span>
+        
+        {settings.heroImage && (
+          <div className="logo-liquid-container">
+            <img src={settings.heroImage} alt="Logo" className="logo-liquid-img" />
+          </div>
+        )}
+
         <h1>
           {settings.heroTitle || 'Tecnología Y Solución en'} <span>{settings.heroTitleHighlight || 'SAILIN TECNO SMARTPHONE'}</span>
         </h1>
