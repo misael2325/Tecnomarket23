@@ -8,6 +8,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import ReactPlayer from 'react-player';
 
 const OFFER_TEMPLATES = [
   { name: 'Black Friday', emoji: '🖤', discount: 30, color: '#111111', accentColor: '#f59e0b' },
@@ -1794,6 +1795,9 @@ const {
                     </button>
                   </div>
                   <div style={{ padding: '20px' }}>
+                    <div style={{ width: '100%', height: '180px', marginBottom: '16px', background: '#000', borderRadius: '8px', overflow: 'hidden' }}>
+                      <ReactPlayer url={video.url} width="100%" height="100%" controls={true} light={false} />
+                    </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--primary)', marginBottom: '8px', wordBreak: 'break-all' }}>{video.url}</p>
                     <p style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', margin: 0 }}>{video.description}</p>
                   </div>

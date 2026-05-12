@@ -20,8 +20,7 @@ const VideoPlayer = ({ url, title, description }) => {
           height="100%"
           style={{ position: 'absolute', top: 0, left: 0 }}
           controls={true}
-          light={true} // Carga una miniatura primero para mejor performance
-          playIcon={<span className="material-symbols-outlined" style={{ fontSize: '4rem', color: 'var(--primary)', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))' }}>play_circle</span>}
+          light={false} // Se desactiva light para permitir que los archivos .mp4 directos de Firebase Storage carguen su reproductor nativo
         />
       </div>
       <div style={{ padding: '24px' }}>
