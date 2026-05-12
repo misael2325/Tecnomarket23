@@ -6,7 +6,7 @@ import { db, storage } from '../firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 const OFFER_TEMPLATES = [
@@ -531,52 +531,85 @@ const {
   };
 
   const handleExportPDF = () => {
-    const doc = new jsPDF();
-    const today = new Date().toLocaleDateString();
-    
-    // Header
-    doc.setFontSize(22);
-    doc.setTextColor(15, 23, 42); // slate-900 icon
-    doc.text(settings.storeName || 'TecnoMarket', 14, 22);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Reporte de Inventario de Todo el Sistema - ${today}`, 14, 30);
-    
-    const tableData = [];
-    products.forEach(p => {
-      if (p.stock && p.stock.length > 0) {
-        p.stock.forEach(item => {
-          tableData.push([
-            p.brand || '',
-            p.model || '',
-            item.specificModel || '',
-            `Grado ${item.grade}`,
-            item.battery > 0 ? `${item.battery}%` : 'N/A',
-            `RD$ ${item.price.toLocaleString('en-US', { minimumFractionDigits: 0 })}`
-          ]);
-        });
-      }
-    });
+    try {
+      const doc = new jsPDF();
+      const today = new Date().toLocaleDateString();
+      
+      // Header
+      doc.setFontSize(22);
+      doc.setTextColor(15, 23, 42); // slate-900 icon
+      doc.text(settings.storeName || 'TecnoMarket', 14, 22);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Reporte de Inventario Detallado - ${today}`, 14, 30);
+      
+      const tableData = [];
+      let totalValue = 0;
+      let totalItems = 0;
 
-    // Sort alphabetically by Brand (0), then Family (1), then Specific Model (2)
-    tableData.sort((a, b) => {
-      if (a[0].toLowerCase() !== b[0].toLowerCase()) return a[0].localeCompare(b[0]);
-      if (a[1].toLowerCase() !== b[1].toLowerCase()) return a[1].localeCompare(b[1]);
-      return a[2].localeCompare(b[2]);
-    });
+      // Ordenar productos por Departamento -> Marca -> Familia
+      const sortedProducts = [...products].sort((a, b) => {
+        const d1 = a.department || 'Otros';
+        const d2 = b.department || 'Otros';
+        if (d1 !== d2) return d1.localeCompare(d2);
+        
+        const m1 = a.brand || 'Otros';
+        const m2 = b.brand || 'Otros';
+        if (m1 !== m2) return m1.localeCompare(m2);
+        
+        return (a.model || '').localeCompare(b.model || '');
+      });
 
-    doc.autoTable({
-      startY: 35,
-      head: [['Marca', 'Familia', 'Modelo Exacto', 'Grado', 'Batería', 'Precio']],
-      body: tableData,
-      headStyles: { fillColor: [0, 240, 255], textColor: [0, 0, 0] },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
-      styles: { fontSize: 8 },
-      margin: { top: 35 },
-    });
+      let currentDept = null;
 
-    doc.save(`inventario_${today.replace(/\//g, '-')}.pdf`);
+      sortedProducts.forEach(p => {
+        if (p.stock && p.stock.length > 0) {
+          const dept = p.department || 'Otros';
+          
+          if (dept !== currentDept) {
+             tableData.push([{ content: `DEPARTAMENTO: ${dept.toUpperCase()}`, colSpan: 6, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: [0, 0, 0] } }]);
+             currentDept = dept;
+          }
+
+          p.stock.forEach(item => {
+            totalValue += Number(item.price) || 0;
+            totalItems++;
+            
+            tableData.push([
+              p.brand || 'N/A',
+              p.model || 'N/A',
+              item.specificModel || 'N/A',
+              `Grado ${item.grade || 'N/A'}`,
+              item.battery > 0 ? `${item.battery}%` : 'N/A',
+              `RD$ ${(Number(item.price)||0).toLocaleString('en-US', { minimumFractionDigits: 0 })}`
+            ]);
+          });
+        }
+      });
+
+      // Añadimos fila de totales al final
+      tableData.push([
+        { content: `TOTAL DE EQUIPOS: ${totalItems}`, colSpan: 4, styles: { fontStyle: 'bold', halign: 'right' } },
+        { content: `VALOR TOTAL:`, colSpan: 1, styles: { fontStyle: 'bold', halign: 'right' } },
+        { content: `RD$ ${totalValue.toLocaleString('en-US')}`, colSpan: 1, styles: { fontStyle: 'bold' } }
+      ]);
+
+      autoTable(doc, {
+        startY: 35,
+        head: [['Marca', 'Familia', 'Modelo Exacto', 'Grado', 'Batería', 'Precio']],
+        body: tableData,
+        headStyles: { fillColor: [0, 200, 255], textColor: [0, 0, 0], fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [250, 250, 250] },
+        styles: { fontSize: 8, cellPadding: 3 },
+        margin: { top: 35 },
+      });
+
+      doc.save(`inventario_${today.replace(/\//g, '-')}.pdf`);
+    } catch(err) {
+      console.error("Error al exportar PDF:", err);
+      alert("Hubo un error generando el PDF.");
+    }
   };
 
   // ======  STYLES  ======
