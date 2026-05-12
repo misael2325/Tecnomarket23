@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -91,24 +92,40 @@ const {
     setLocalSettings(settings);
   }, [settings]);
 
-  const handleFileUpload = (e, field, isSettings = true, callback = null) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (e, field, isSettings = true, callback = null) => {
     const file = e.target.files[0];
     if (!file) return;
     
-    if (file.size > 1024 * 1024) {
-      alert("La imagen es muy pesada. Intenta con una menor a 1MB para un mejor rendimiento.");
+    // We remove the 1MB limit check so that users can upload videos/larger images if they want.
+    // However, it's good practice to keep it reasonable. Let's warn for very large files.
+    if (file.size > 50 * 1024 * 1024) { // 50MB warning for videos
+      alert("El archivo es mayor a 50MB. Puede tomar mucho tiempo en subir.");
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result;
+    try {
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+      const storageRef = ref(storage, `uploads/${fileName}`);
+      
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
       if (isSettings) {
-        setLocalSettings(prev => ({ ...prev, [field]: base64 }));
+        setLocalSettings(prev => ({ ...prev, [field]: downloadURL }));
       } else if (callback) {
-        callback(base64);
+        callback(downloadURL);
       }
-    };
-    reader.readAsDataURL(file);
+      // alert("✅ Archivo subido a la nube correctamente.");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      alert("❌ Hubo un error al subir el archivo. Intenta de nuevo.");
+    } finally {
+      setIsUploading(false);
+      e.target.value = ''; // Reset input
+    }
   };
 
   // Sync Users
@@ -134,10 +151,10 @@ const {
           style={{ flex: 1, margin: 0 }}
           placeholder={placeholder || "https://..."} 
         />
-        <label className="btn" style={{ cursor: 'pointer', padding: '0 24px' }}>
-          <span className="material-symbols-outlined">upload</span>
-          Subir
-          <input type="file" accept="image/*" onChange={onUpload} style={{ display: 'none' }} />
+        <label className={`btn ${isUploading ? 'loading' : ''}`} style={{ cursor: isUploading ? 'not-allowed' : 'pointer', padding: '0 24px', opacity: isUploading ? 0.7 : 1 }}>
+          <span className="material-symbols-outlined">{isUploading ? 'sync' : 'upload'}</span>
+          {isUploading ? 'Subiendo...' : 'Subir'}
+          <input type="file" accept="image/*" onChange={onUpload} style={{ display: 'none' }} disabled={isUploading} />
         </label>
       </div>
       {value && (
@@ -1221,36 +1238,9 @@ const {
                 <span className="material-symbols-outlined">add_photo_alternate</span>
                 Añadir Banner
                 <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
-                  const file = e.target.files[0];
-                  if(!file) return;
-                  
-                  const reader = new FileReader();
-                  reader.onload = (event) => {
-                    const img = new Image();
-                    img.onload = () => {
-                      const canvas = document.createElement('canvas');
-                      const MAX_WIDTH = 1200; // Reducir resolución para no saturar base de datos
-                      let width = img.width;
-                      let height = img.height;
-                      
-                      if (width > MAX_WIDTH) {
-                        height = Math.round((height * MAX_WIDTH) / width);
-                        width = MAX_WIDTH;
-                      }
-                      
-                      canvas.width = width;
-                      canvas.height = height;
-                      const ctx = canvas.getContext('2d');
-                      ctx.drawImage(img, 0, 0, width, height);
-                      
-                      // Comprimir a JPEG al 60% para que nunca pase el límite de Firebase
-                      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                      
-                      updateSettings({ ...settings, campaignBanners: [...(settings.campaignBanners || []), compressedBase64] });
-                    };
-                    img.src = event.target.result;
-                  };
-                  reader.readAsDataURL(file);
+                  handleFileUpload(e, null, false, (url) => {
+                    updateSettings({ ...settings, campaignBanners: [...(settings.campaignBanners || []), url] });
+                  });
                 }} />
               </label>
             </div>
@@ -1792,9 +1782,16 @@ const {
                 <input type="text" value={newVideo.title} onChange={e => setNewVideo({ ...newVideo, title: e.target.value })} className="form-input" placeholder="Ej: Unboxing iPhone 15 Pro Max" required />
               </div>
               <div>
-                <label className="form-label">Enlace (URL)</label>
-                <input type="url" value={newVideo.url} onChange={e => setNewVideo({ ...newVideo, url: e.target.value })} className="form-input" placeholder="https://www.youtube.com/watch?v=..." required />
-                <p style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', marginTop: '8px' }}>Soporta YouTube, Facebook, TikTok, Instagram, Vimeo y links directos.</p>
+                <label className="form-label">Enlace (URL) o Archivo de Video</label>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <input type="url" value={newVideo.url} onChange={e => setNewVideo({ ...newVideo, url: e.target.value })} className="form-input" placeholder="https://www.youtube.com/watch?v=..." style={{ flex: 1, margin: 0 }} />
+                  <label className={`btn ${isUploading ? 'loading' : ''}`} style={{ cursor: isUploading ? 'not-allowed' : 'pointer', padding: '0 24px', whiteSpace: 'nowrap', opacity: isUploading ? 0.7 : 1 }}>
+                    <span className="material-symbols-outlined">{isUploading ? 'sync' : 'upload'}</span>
+                    {isUploading ? 'Subiendo...' : 'Subir Video'}
+                    <input type="file" accept="video/*" onChange={(e) => handleFileUpload(e, 'url', false, (url) => setNewVideo({ ...newVideo, url }))} style={{ display: 'none' }} disabled={isUploading} />
+                  </label>
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--on-surface-variant)', marginTop: '8px' }}>Soporta YouTube, Facebook, TikTok, Instagram, Vimeo o sube un archivo de video desde tu dispositivo.</p>
               </div>
               <div>
                 <label className="form-label">Descripción Corta</label>

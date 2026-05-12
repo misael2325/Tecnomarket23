@@ -7,6 +7,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
   const { login, resetPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,6 +18,7 @@ export default function Login() {
     e.preventDefault();
     try {
       setError('');
+      setMessage('');
       setLoading(true);
       await login(email, password);
       navigate(from, { replace: true });
@@ -34,12 +36,28 @@ export default function Login() {
   }
 
   async function handleResetPassword() {
-    if (!email) return alert('Por favor ingresa tu correo para restablecer la contraseña.');
+    if (!email) {
+      setError('Por favor ingresa tu correo electrónico primero.');
+      return;
+    }
+    
     try {
+      setError('');
+      setMessage('');
+      setLoading(true);
       await resetPassword(email);
-      alert('Se ha enviado un correo para restablecer tu contraseña.');
+      setMessage('Se ha enviado un correo de recuperación a ' + email + '. Revisa tu bandeja de entrada y spam.');
     } catch (err) {
-      alert('Error al intentar enviar el correo. Verifica el email escrito.');
+      console.error("Reset Password Error:", err.code);
+      if (err.code === 'auth/user-not-found') {
+        setError('No existe ninguna cuenta con este correo electrónico.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Demasiadas solicitudes. Intenta de nuevo en unos minutos.');
+      } else {
+        setError('Error al enviar el correo de recuperación. Verifica el correo e intenta de nuevo.');
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -70,6 +88,7 @@ export default function Login() {
         </div>
 
         {error && <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '12px', borderRadius: '12px', marginBottom: '20px', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>{error}</div>}
+        {message && <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', padding: '12px', borderRadius: '12px', marginBottom: '20px', fontSize: '0.9rem', border: '1px solid rgba(34, 197, 94, 0.2)' }}>{message}</div>}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div style={{ textAlign: 'left' }}>
@@ -88,7 +107,7 @@ export default function Login() {
             <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '8px', display: 'block', marginLeft: '5px' }}>Contraseña</label>
             <input 
               type="password" 
-              required 
+              required={!message} // Not required if we just want to reset password
               value={password} 
               onChange={e => setPassword(e.target.value)}
               style={{ width: '100%', padding: '14px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: 'white', fontSize: '1rem', outline: 'none' }}
@@ -102,16 +121,23 @@ export default function Login() {
             className="btn" 
             style={{ width: '100%', padding: '14px', marginTop: '10px', fontSize: '1rem', fontWeight: 700 }}
           >
-            {loading ? 'Iniciando...' : 'Iniciar Sesión'}
+            {loading ? 'Procesando...' : 'Iniciar Sesión'}
           </button>
         </form>
 
         <div style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <button onClick={handleResetPassword} style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600 }}>¿Olvidaste tu contraseña?</button>
+          <button 
+            type="button"
+            onClick={handleResetPassword} 
+            disabled={loading}
+            style={{ background: 'transparent', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, opacity: loading ? 0.5 : 1 }}
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
             ¿No tienes cuenta? <Link to="/register" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 700 }}>Regístrate aquí</Link>
           </div>
-        </div>
+              </div>
       </div>
     </div>
   );
