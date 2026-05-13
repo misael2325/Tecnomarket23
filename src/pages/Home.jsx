@@ -347,8 +347,19 @@ export default function Home() {
             <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Ubicación</h4>
             <p style={{ fontSize: '0.9rem', marginBottom: '8px', color: 'var(--on-surface-variant)' }}>{settings.contactAddress}</p>
             <p style={{ fontWeight: 800, marginBottom: '16px' }}>{settings.contactPhone}</p>
-            <a href="https://maps.app.goo.gl/2BJC3KFP12Wp7ovX6" target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '0.85rem', width: 'fit-content' }}>
-              <i className="fa-solid fa-location-dot" style={{ fontSize: '1rem' }}></i> Cómo Llegar
+            <div style={{ width: '100%', height: '150px', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(settings.contactAddress || 'República Dominicana')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              ></iframe>
+            </div>
+            <a href="https://maps.app.goo.gl/2BJC3KFP12Wp7ovX6" target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '0.85rem', width: '100%', justifyContent: 'center' }}>
+              <i className="fa-solid fa-location-dot" style={{ fontSize: '1rem' }}></i> Abrir en Google Maps
             </a>
           </div>
           <div>

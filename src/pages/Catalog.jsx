@@ -222,9 +222,23 @@ export default function Catalog() {
             <p style={{ color: 'var(--on-surface-variant)', fontSize: '1rem' }}>{settings.footerDesc}</p>
           </div>
           <div>
-            <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Soporte</h4>
-            <p style={{ fontSize: '0.9rem' }}>{settings.contactAddress}</p>
-            <p style={{ marginTop: '10px', fontWeight: 800, color: 'var(--primary)' }}>{settings.contactPhone}</p>
+            <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Ubicación</h4>
+            <p style={{ fontSize: '0.9rem', marginBottom: '8px' }}>{settings.contactAddress}</p>
+            <p style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '16px' }}>{settings.contactPhone}</p>
+            <div style={{ width: '100%', height: '120px', borderRadius: '12px', overflow: 'hidden', marginBottom: '16px' }}>
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(settings.contactAddress || 'República Dominicana')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              ></iframe>
+            </div>
+            <a href="https://maps.app.goo.gl/2BJC3KFP12Wp7ovX6" target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '0.85rem', width: '100%', justifyContent: 'center' }}>
+              <i className="fa-solid fa-location-dot" style={{ fontSize: '1rem' }}></i> Cómo Llegar
+            </a>
           </div>
           <div>
             <h4 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Conecta</h4>
