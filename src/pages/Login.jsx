@@ -8,7 +8,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const { login, resetPassword } = useAuth();
+  const { login, resetPassword, loginWithGoogle, loginWithFacebook } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -124,6 +124,31 @@ export default function Login() {
             {loading ? 'Procesando...' : 'Iniciar Sesión'}
           </button>
         </form>
+
+        <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+          <span style={{ margin: '0 10px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>O continuar con</span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button 
+            type="button" 
+            onClick={async () => { await loginWithGoogle(); navigate(from, { replace: true }); }}
+            className="btn btn-outline" 
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderColor: 'rgba(255,255,255,0.2)' }}
+          >
+            <i className="fa-brands fa-google" style={{ color: '#ea4335', fontSize: '1.2rem' }}></i> Google
+          </button>
+          <button 
+            type="button" 
+            onClick={async () => { await loginWithFacebook(); navigate(from, { replace: true }); }}
+            className="btn btn-outline" 
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderColor: 'rgba(255,255,255,0.2)' }}
+          >
+            <i className="fa-brands fa-facebook" style={{ color: '#1877f2', fontSize: '1.2rem' }}></i> Facebook
+          </button>
+        </div>
 
         <div style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <button 

@@ -6,6 +6,7 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   GoogleAuthProvider,
+  FacebookAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -107,6 +108,31 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const loginWithFacebook = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      const res = await signInWithPopup(auth, provider);
+      const user = res.user;
+      
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          name: user.displayName || 'Usuario Facebook',
+          email: user.email || '',
+          photoURL: user.photoURL || '',
+          status: 'approved',
+          role: 'user',
+          createdAt: new Date().toISOString()
+        });
+      }
+      return res;
+    } catch (error) {
+      console.error("Error al iniciar sesión con Facebook:", error);
+      alert("Error de inicio de sesión: " + error.message + ".\n\nVerifica que 'Facebook' esté habilitado en Firebase y que tengas la App configurada.");
+    }
+  };
+
   const isSuperAdmin = currentUser?.email === SUPER_ADMIN_EMAIL;
   const isAdmin = isSuperAdmin || currentUser?.role === 'admin';
 
@@ -119,6 +145,7 @@ export function AuthProvider({ children }) {
       signup, 
       login, 
       loginWithGoogle,
+      loginWithFacebook,
       logout, 
       resetPassword,
       loading 
