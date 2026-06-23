@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
 import { db, storage } from '../firebase';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -87,6 +87,8 @@ const {
 
   // --- Users Tab State ---
   const [users, setUsers] = useState([]);
+  // --- Comments Moderation State ---
+  const [comments, setComments] = useState([]);
 
   // Sync localSettings when global settings load from Firebase
   useEffect(() => {
@@ -138,6 +140,57 @@ const {
     });
     return () => unsubUsers();
   }, []);
+
+  // Sync Comments
+  useEffect(() => {
+    const unsubComments = onSnapshot(collection(db, "comments"), (snapshot) => {
+      const items = [];
+      snapshot.forEach(doc => items.push({ ...doc.data(), id: doc.id }));
+      setComments(items);
+    });
+    return () => unsubComments();
+  }, []);
+
+  const handlePublishComment = async (comment) => {
+    try {
+      await setDoc(doc(db, "comments", comment.id), { ...comment, published: true });
+      
+      const newReview = {
+        id: comment.id,
+        initials: comment.initials || 'US',
+        name: comment.name || 'Cliente',
+        photoURL: comment.photoURL || null,
+        rating: comment.rating || '5 Estrellas',
+        text: comment.text || ''
+      };
+      
+      const currentReviews = settings.reviews || [];
+      if (!currentReviews.some(r => r.id === comment.id)) {
+        await updateSettings({ ...settings, reviews: [...currentReviews, newReview] });
+      }
+      alert("✅ Comentario publicado y añadido a testimonios.");
+    } catch (e) {
+      console.error("Error al publicar comentario: ", e);
+      alert("❌ Error al publicar comentario.");
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("¿Seguro que deseas eliminar este comentario?")) return;
+    try {
+      await deleteDoc(doc(db, "comments", commentId));
+      
+      const currentReviews = settings.reviews || [];
+      const updatedReviews = currentReviews.filter(r => r.id !== commentId);
+      if (currentReviews.length !== updatedReviews.length) {
+        await updateSettings({ ...settings, reviews: updatedReviews });
+      }
+      alert("✅ Comentario eliminado con éxito.");
+    } catch (e) {
+      console.error("Error al eliminar comentario: ", e);
+      alert("❌ Error al eliminar el comentario.");
+    }
+  };
 
   const ImageInput = ({ label, name, value, onChange, onUpload, placeholder }) => (
     <div style={{ marginBottom: '24px' }}>
@@ -254,8 +307,10 @@ const {
       description: formData.get('description'),
       image: formData.get('image'),
       department: formData.get('department'),
+      isSoldOut: formData.get('isSoldOut') === 'on',
       basePrice: 0,
-      stock: []
+      stock: [],
+      lastUpdated: new Date().toISOString()
     };
     
     if (editingProduct) {
@@ -290,10 +345,11 @@ const {
       storage: newStock.storage || '',
       grade: newStock.grade,
       battery: Number(newStock.battery),
-      price: Number(newStock.price) || product.basePrice
+      price: Number(newStock.price) || product.basePrice,
+      isSoldOut: false
     };
 
-    const updated = { ...product, stock: [...product.stock, newItem] };
+    const updated = { ...product, stock: [...product.stock, newItem], lastUpdated: new Date().toISOString() };
     updateProduct(updated);
     setShowStockModal(false);
     setNewStock({ specificModel: '', storage: '', grade: 'A', battery: 100, price: '' });
@@ -394,7 +450,7 @@ const {
   const handleDeleteStock = (productId, stockId) => {
     if (!window.confirm('🚨 ¿Estás seguro de que quieres eliminar este artículo del stock de forma permanente?')) return;
     const product = products.find(p => p.id === productId);
-    const updated = { ...product, stock: product.stock.filter(s => s.id !== stockId) };
+    const updated = { ...product, stock: product.stock.filter(s => s.id !== stockId), lastUpdated: new Date().toISOString() };
     updateProduct(updated);
   };
 
@@ -413,7 +469,7 @@ const {
     const updatedStock = product.stock.map(s =>
       s.id === stockId ? { ...s, ...editedItem, price: newPrice } : s
     );
-    updateProduct({ ...product, stock: updatedStock });
+    updateProduct({ ...product, stock: updatedStock, lastUpdated: new Date().toISOString() });
     setEditingStockItems(prev => { const n = { ...prev }; delete n[key]; return n; });
   };
 
@@ -443,6 +499,22 @@ const {
 
   const handleToggleOffer = (offer) => {
     updateOffer({ ...offer, active: !offer.active });
+  };
+
+  const handleMoveBanner = async (idx, direction) => {
+    const banners = [...(settings.campaignBanners || [])];
+    if (direction === 'left' && idx > 0) {
+      const temp = banners[idx];
+      banners[idx] = banners[idx - 1];
+      banners[idx - 1] = temp;
+    } else if (direction === 'right' && idx < banners.length - 1) {
+      const temp = banners[idx];
+      banners[idx] = banners[idx + 1];
+      banners[idx + 1] = temp;
+    } else {
+      return;
+    }
+    await updateSettings({ ...settings, campaignBanners: banners });
   };
 
   const isOfferLive = (offer) => {
@@ -740,6 +812,81 @@ const {
               <div><label className="form-label">Email Corporativo</label><input type="email" name="contactEmail" value={localSettings.contactEmail || ''} onChange={handleSettingsChange} className="form-input" /></div>
               <div><label className="form-label">WhatsApp de Ventas</label><input type="text" name="contactPhone" value={localSettings.contactPhone || ''} onChange={handleSettingsChange} className="form-input" /></div>
               <div style={{ gridColumn: 'span 2' }}><label className="form-label">Dirección Flagship</label><input type="text" name="contactAddress" value={localSettings.contactAddress || ''} onChange={handleSettingsChange} className="form-input" /></div>
+            </div>
+          </div>
+
+          {/* Banner Promocional / Descuentos */}
+          <div style={{ background: 'var(--surface-container-low)', padding: '48px', borderRadius: 'var(--xl-radius)' }}>
+            <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.5rem', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <span className="material-symbols-outlined" style={{ color: 'var(--primary)' }}>campaign</span>
+              Banner Promocional / Descuento Global
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '32px' }}>
+              <div>
+                <label className="form-label">Estado del Banner</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+                  <input
+                    type="checkbox"
+                    id="promoBannerActive"
+                    name="promoBannerActive"
+                    checked={!!localSettings.promoBannerActive}
+                    onChange={(e) => setLocalSettings(prev => ({ ...prev, promoBannerActive: e.target.checked }))}
+                    style={{ width: '24px', height: '24px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="promoBannerActive" style={{ cursor: 'pointer', fontWeight: 600 }}>Activar Banner en la cabecera</label>
+                </div>
+              </div>
+              <div style={{ gridColumn: 'span 2' }}>
+                <label className="form-label">Mensaje Promocional</label>
+                <textarea
+                  name="promoBannerText"
+                  value={localSettings.promoBannerText || ''}
+                  onChange={handleSettingsChange}
+                  rows="2"
+                  className="form-input"
+                  placeholder="Ej: 🎉 ¡Descuentos especiales para todos nuestros clientes! Consúltanos por WhatsApp."
+                />
+              </div>
+              <div>
+                <label className="form-label">Color de Fondo</label>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    name="promoBannerBgColor"
+                    value={localSettings.promoBannerBgColor || '#25D366'}
+                    onChange={handleSettingsChange}
+                    style={{ width: '48px', height: '48px', border: 'none', borderRadius: '8px', cursor: 'pointer', background: 'transparent' }}
+                  />
+                  <input
+                    type="text"
+                    name="promoBannerBgColor"
+                    value={localSettings.promoBannerBgColor || '#25D366'}
+                    onChange={handleSettingsChange}
+                    className="form-input"
+                    style={{ margin: 0, padding: '8px' }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="form-label">Color de Texto</label>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <input
+                    type="color"
+                    name="promoBannerTextColor"
+                    value={localSettings.promoBannerTextColor || '#ffffff'}
+                    onChange={handleSettingsChange}
+                    style={{ width: '48px', height: '48px', border: 'none', borderRadius: '8px', cursor: 'pointer', background: 'transparent' }}
+                  />
+                  <input
+                    type="text"
+                    name="promoBannerTextColor"
+                    value={localSettings.promoBannerTextColor || '#ffffff'}
+                    onChange={handleSettingsChange}
+                    className="form-input"
+                    style={{ margin: 0, padding: '8px' }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1076,7 +1223,7 @@ const {
                                     <div key={item.id} className="device-item" style={{ background: 'transparent' }}>
                                       {editingStockItems[`${product.id}-${item.id}`] ? (
                                         <>
-                                          <div style={{ display: 'grid', gridTemplateColumns: dept === 'Celulares' ? '1.2fr 80px 60px 1fr 1fr' : '1.5fr 80px 1fr 1fr', gap: '8px', width: '100%' }}>
+                                          <div style={{ display: 'grid', gridTemplateColumns: dept === 'Celulares' ? '1.2fr 80px 60px 1fr 1fr 100px' : '1.5fr 80px 1fr 1fr 100px', gap: '8px', width: '100%' }}>
                                             <input
                                               type="text"
                                               value={editingStockItems[`${product.id}-${item.id}`].specificModel}
@@ -1125,6 +1272,15 @@ const {
                                               placeholder="Precio"
                                               onKeyDown={e => { if (e.key === 'Enter') handleSaveStockEdit(product.id, item.id); if (e.key === 'Escape') setEditingStockItems(prev => { const n={...prev}; delete n[`${product.id}-${item.id}`]; return n; }); }}
                                             />
+                                            <select
+                                              value={editingStockItems[`${product.id}-${item.id}`].isSoldOut ? 'Agotado' : 'Disponible'}
+                                              onChange={e => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...prev[`${product.id}-${item.id}`], isSoldOut: e.target.value === 'Agotado' } }))}
+                                              className="form-input"
+                                              style={{ margin: 0, padding: '6px 10px', fontSize: '0.85rem' }}
+                                            >
+                                              <option value="Disponible">Disponible</option>
+                                              <option value="Agotado">Agotado</option>
+                                            </select>
                                           </div>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
                                             <button
@@ -1158,9 +1314,31 @@ const {
                                             <div className={`device-grade grade-${item.grade.replace(/\s+/g, '-').toLowerCase()}`} style={{ border: 'none', background: 'var(--surface-container-highest)', color: 'var(--on-surface)' }}>
                                               {item.grade}
                                             </div>
+                                            <span style={{
+                                              background: item.isSoldOut ? 'rgba(255, 78, 107, 0.15)' : 'rgba(0, 255, 135, 0.15)',
+                                              color: item.isSoldOut ? '#ff4e6b' : '#00ff87',
+                                              fontSize: '0.75rem',
+                                              padding: '2px 8px',
+                                              borderRadius: '4px',
+                                              fontWeight: 'bold'
+                                            }}>
+                                              {item.isSoldOut ? 'Agotado' : 'Disponible'}
+                                            </span>
                                           </div>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <span style={{ fontWeight: 900, fontSize: '1.1rem', color: 'var(--primary)' }}>RD$ {item.price.toLocaleString('en-US')}</span>
+                                            <button
+                                              onClick={() => {
+                                                const updatedStock = product.stock.map(s => s.id === item.id ? { ...s, isSoldOut: !s.isSoldOut } : s);
+                                                updateProduct({ ...product, stock: updatedStock, lastUpdated: new Date().toISOString() });
+                                              }}
+                                              style={{ background: 'none', border: 'none', color: item.isSoldOut ? '#00ff87' : '#ff4e6b', cursor: 'pointer', display: 'flex', padding: '4px' }}
+                                              title={item.isSoldOut ? "Marcar como Disponible" : "Marcar como Agotado"}
+                                            >
+                                              <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>
+                                                {item.isSoldOut ? 'check_circle' : 'block'}
+                                              </span>
+                                            </button>
                                             <button
                                               onClick={() => setEditingStockItems(prev => ({ ...prev, [`${product.id}-${item.id}`]: { ...item } }))}
                                               style={{ background: 'none', border: 'none', color: 'var(--on-surface-variant)', cursor: 'pointer', display: 'flex', padding: '4px' }}
@@ -1279,41 +1457,120 @@ const {
               </label>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
               {(settings.campaignBanners || []).map((banner, idx) => (
-                <div key={idx} style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '21/9', background: 'var(--surface-container)' }}>
-                  <img src={banner} alt={`Banner ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      if (window.confirm('¿Borrar este banner permanentemente del carrusel?')) {
-                        const newBanners = [...settings.campaignBanners];
-                        newBanners.splice(idx, 1);
-                        updateSettings({ ...settings, campaignBanners: newBanners });
-                      }
-                    }} 
-                    style={{ 
-                      position: 'absolute', 
-                      top: '12px', 
-                      right: '12px', 
-                      background: 'rgba(255, 78, 107, 0.9)', 
-                      border: 'none', 
-                      color: 'white', 
-                      width: '36px', 
-                      height: '36px', 
-                      borderRadius: '50%', 
-                      cursor: 'pointer', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                      transition: 'all 0.3s ease'
+                <div key={idx} style={{
+                  position: 'relative',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  aspectRatio: '21/9',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
+                  transition: 'transform 0.3s ease, border-color 0.3s ease'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'; }}
+                >
+                  <img
+                    src={banner}
+                    alt={`Banner ${idx}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      opacity: 0.85,
+                      transition: 'opacity 0.3s ease'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                  >
-                    <span className="material-symbols-outlined" style={{ fontSize: '1.4rem' }}>delete</span>
-                  </button>
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = 0.85}
+                  />
+                  {/* Overlay Controls */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    zIndex: 10
+                  }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => handleMoveBanner(idx, 'left')}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          border: 'none',
+                          color: idx === 0 ? 'rgba(255, 255, 255, 0.25)' : 'white',
+                          borderRadius: '8px',
+                          width: '32px',
+                          height: '32px',
+                          cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'background 0.2s'
+                        }}
+                        title="Mover Izquierda"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>arrow_back</span>
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === (settings.campaignBanners || []).length - 1}
+                        onClick={() => handleMoveBanner(idx, 'right')}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          border: 'none',
+                          color: idx === (settings.campaignBanners || []).length - 1 ? 'rgba(255, 255, 255, 0.25)' : 'white',
+                          borderRadius: '8px',
+                          width: '32px',
+                          height: '32px',
+                          cursor: idx === (settings.campaignBanners || []).length - 1 ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'background 0.2s'
+                        }}
+                        title="Mover Derecha"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>arrow_forward</span>
+                      </button>
+                    </div>
+                    
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm('¿Borrar este banner permanentemente del carrusel?')) {
+                          const newBanners = [...settings.campaignBanners];
+                          newBanners.splice(idx, 1);
+                          updateSettings({ ...settings, campaignBanners: newBanners });
+                        }
+                      }} 
+                      style={{ 
+                        background: 'rgba(255, 78, 107, 0.2)', 
+                        border: '1px solid rgba(255, 78, 107, 0.4)', 
+                        color: '#ff4e6b', 
+                        width: '32px', 
+                        height: '32px', 
+                        borderRadius: '8px', 
+                        cursor: 'pointer', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        transition: 'all 0.2s'
+                      }}
+                      title="Eliminar Banner"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>delete</span>
+                    </button>
+                  </div>
                 </div>
               ))}
               {(!settings.campaignBanners || settings.campaignBanners.length === 0) && (
@@ -1500,6 +1757,18 @@ const {
                 onChange={(e) => setProductImage(e.target.value)}
                 onUpload={(e) => handleFileUpload(e, 'image', false, (base64) => setProductImage(base64))} 
               />
+
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', marginTop: '8px', marginBottom: '8px' }}>
+                  <input
+                    type="checkbox"
+                    name="isSoldOut"
+                    defaultChecked={!!editingProduct?.isSoldOut}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontWeight: 600, color: 'var(--on-surface)' }}>Marcar toda la Familia como Agotada (Sin existencias)</span>
+                </label>
+              </div>
 
               <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
                 <button type="submit" className="btn" style={{ flex: 2 }}>
@@ -1756,6 +2025,107 @@ const {
                       </h3>
                       <div style={{ display: 'grid', gap: '16px' }}>
                         {clientUsers.length > 0 ? clientUsers.map(u => renderUserCard(u, true)) : <p style={{ color: 'var(--on-surface-variant)' }}>No hay clientes registrados.</p>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--font-headline)', fontSize: '1.4rem', color: 'var(--primary)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="material-symbols-outlined">forum</span> Moderación de Comentarios
+                      </h3>
+                      <div style={{ display: 'grid', gap: '16px' }}>
+                        {comments.length === 0 ? (
+                          <p style={{ color: 'var(--on-surface-variant)' }}>No hay comentarios que moderar en este momento.</p>
+                        ) : (
+                          comments.map(c => (
+                            <div key={c.id} style={{
+                              background: 'var(--surface-container-low)',
+                              padding: '24px',
+                              borderRadius: 'var(--lg-radius)',
+                              border: c.published ? '1px solid rgba(0, 255, 135, 0.2)' : '1px solid rgba(255, 235, 59, 0.2)',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'flex-start',
+                              gap: '24px'
+                            }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                                  <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '50%',
+                                    background: 'var(--primary)',
+                                    color: 'black',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: 'bold',
+                                    fontSize: '0.85rem'
+                                  }}>
+                                    {c.initials || 'US'}
+                                  </div>
+                                  <div>
+                                    <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800 }}>{c.name}</h4>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>{c.email}</span>
+                                  </div>
+                                  <span style={{
+                                    fontSize: '0.7rem',
+                                    padding: '2px 8px',
+                                    borderRadius: '100px',
+                                    fontWeight: 'bold',
+                                    marginLeft: 'auto',
+                                    background: c.published ? 'rgba(0, 255, 135, 0.1)' : 'rgba(255, 235, 59, 0.1)',
+                                    color: c.published ? '#00ff87' : '#fbee3c'
+                                  }}>
+                                    {c.published ? 'Publicado' : 'Pendiente'}
+                                  </span>
+                                </div>
+                                <div style={{ marginBottom: '8px', fontSize: '0.85rem', color: 'var(--tertiary)', fontWeight: 'bold' }}>
+                                  Dispositivo: {c.productModel || 'Desconocido'} ({c.rating})
+                                </div>
+                                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--on-surface-variant)', fontStyle: 'italic', lineHeight: 1.4 }}>
+                                  "{c.text}"
+                                </p>
+                              </div>
+                              
+                              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                                {!c.published && (
+                                  <button
+                                    onClick={() => handlePublishComment(c)}
+                                    className="btn"
+                                    style={{
+                                      padding: '8px 16px',
+                                      fontSize: '0.8rem',
+                                      background: '#00ff87',
+                                      color: 'black',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                    title="Publicar Comentario"
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>publish</span>
+                                    Publicar
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleDeleteComment(c.id)}
+                                  className="btn btn-outline"
+                                  style={{
+                                    padding: '8px 12px',
+                                    fontSize: '0.8rem',
+                                    borderColor: 'var(--error)',
+                                    color: 'var(--error)',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                  title="Eliminar Comentario"
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>delete</span>
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   </div>

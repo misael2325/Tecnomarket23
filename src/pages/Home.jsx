@@ -79,7 +79,31 @@ export default function Home() {
 
   return (
     <>
-      <nav className="glass-effect">
+      {settings.promoBannerActive && (
+        <div style={{
+          background: settings.promoBannerBgColor || '#25D366',
+          color: settings.promoBannerTextColor || '#ffffff',
+          padding: '8px 24px',
+          textAlign: 'center',
+          fontWeight: 800,
+          fontSize: '0.85rem',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          height: '40px'
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>campaign</span>
+          <span>{settings.promoBannerText}</span>
+        </div>
+      )}
+      <nav className="glass-effect" style={{ top: settings.promoBannerActive ? '40px' : '0px', transition: 'top 0.3s ease' }}>
         <Link to="/" className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {settings.heroImage && (
             <img src={settings.heroImage} alt="Logo" style={{ height: '36px', width: '36px', objectFit: 'cover', borderRadius: '50%', border: '1px solid var(--outline-variant)' }} />
@@ -101,14 +125,14 @@ export default function Home() {
               Entrar
             </Link>
           )}
-          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '10px 24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '10px 24px', display: 'flex', alignItems: 'center', gap: '8px', background: '#25D366', color: 'white', border: 'none' }}>
             <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i> Contáctanos
           </a>
         </div>
       </nav>
 
 
-      <section className="hero">
+      <section className="hero" style={{ paddingTop: settings.promoBannerActive ? '160px' : '120px' }}>
         <span className="badge">Tecnología a tu alcance</span>
         
         {settings.heroImage && (

@@ -61,9 +61,44 @@ export default function Catalog() {
     );
   }
 
+  const formatDate = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
   return (
     <>
-      <nav className="glass-effect">
+      {settings.promoBannerActive && (
+        <div style={{
+          background: settings.promoBannerBgColor || '#25D366',
+          color: settings.promoBannerTextColor || '#ffffff',
+          padding: '8px 24px',
+          textAlign: 'center',
+          fontWeight: 800,
+          fontSize: '0.85rem',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          height: '40px'
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>campaign</span>
+          <span>{settings.promoBannerText}</span>
+        </div>
+      )}
+      <nav className="glass-effect" style={{ top: settings.promoBannerActive ? '40px' : '0px', transition: 'top 0.3s ease' }}>
         <Link to="/" className="nav-brand">
           {settings.storeName || 'Sailin Tecno'}
         </Link>
@@ -75,7 +110,7 @@ export default function Catalog() {
           <button onClick={() => logout()} className="btn btn-outline" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
             Salir
           </button>
-          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '10px 24px' }}>
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="btn" style={{ padding: '10px 24px', background: '#25D366', color: 'white', border: 'none' }}>
             Chat Directo
           </a>
         </div>
@@ -84,7 +119,7 @@ export default function Catalog() {
       {/* FILTER BAR - CLASSIC STICKY */}
       <div className="glass-effect" style={{ 
         position: 'sticky', 
-        top: '70px', 
+        top: settings.promoBannerActive ? '110px' : '70px', 
         zIndex: 100, 
         padding: '16px 8%',
         display: 'flex',
@@ -92,7 +127,8 @@ export default function Catalog() {
         overflowX: 'auto',
         scrollbarWidth: 'none',
         justifyContent: 'center',
-        borderBottom: '1px solid var(--outline-variant)'
+        borderBottom: '1px solid var(--outline-variant)',
+        transition: 'top 0.3s ease'
       }}>
         <button 
           onClick={() => handleSelectDept('Todos')}
@@ -159,21 +195,23 @@ export default function Catalog() {
                   <div className="productos">
                     {deptProducts.map(product => {
                       const stockItems = product.stock || [];
-                      const minPrice = stockItems.length > 0
-                        ? Math.min(...stockItems.map(s => Number(s.price) || 0))
-                        : (Number(product.basePrice) || 0);
+                      const availableStock = stockItems.filter(s => !s.isSoldOut);
+                      const isFamilySoldOut = product.isSoldOut || availableStock.length === 0;
+                      const minPrice = availableStock.length > 0
+                        ? Math.min(...availableStock.map(s => Number(s.price) || 0))
+                        : (stockItems.length > 0 ? Math.min(...stockItems.map(s => Number(s.price) || 0)) : (Number(product.basePrice) || 0));
 
                       const activeOffer = offers.find(o => isOfferLive(o) && (o.applicableProducts || []).includes(product.id));
                       const discountedPrice = activeOffer ? minPrice - (minPrice * (activeOffer.discount / 100)) : minPrice;
 
                       return (
-                        <Link to={`/device/${product.id}`} key={product.id} className="card">
+                        <Link to={`/device/${product.id}`} key={product.id} className="card" style={isFamilySoldOut ? { opacity: 0.65, pointerEvents: 'none' } : {}}>
                           <div className="card-img-wrapper">
                             <img src={product.image} alt={product.model} loading="lazy" />
-                            {stockItems.length === 0 && (
-                              <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.7)', padding: '4px 10px', borderRadius: '4px', fontSize: '0.7rem' }}>Agotado</div>
+                            {isFamilySoldOut && (
+                              <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(255,78,107,0.9)', color: 'white', padding: '4px 10px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 'bold' }}>Agotado</div>
                             )}
-                            {activeOffer && stockItems.length > 0 && (
+                            {activeOffer && !isFamilySoldOut && (
                               <div style={{ position: 'absolute', top: '10px', left: '10px', background: activeOffer.accentColor || 'var(--primary)', color: 'black', padding: '4px 10px', borderRadius: '100px', fontSize: '0.7rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
                                 <span>{activeOffer.emoji}</span> {activeOffer.name}
                               </div>
@@ -182,7 +220,9 @@ export default function Catalog() {
                           <div className="card-info">
                             <h3 className="card-title">{product.model}</h3>
                             <div className="card-price" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                              {stockItems.length > 0 ? (
+                              {isFamilySoldOut ? (
+                                <span style={{ color: '#ff4e6b', fontWeight: 900, fontSize: '1rem' }}>Sin existencias</span>
+                              ) : stockItems.length > 0 ? (
                                 activeOffer ? (
                                   <>
                                     <span style={{ textDecoration: 'line-through', color: 'var(--on-surface-variant)', fontSize: '0.9rem' }}>
@@ -200,7 +240,13 @@ export default function Catalog() {
                                 )
                               ) : 'Próximamente'}
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>
+                            {product.lastUpdated && (
+                              <div style={{ fontSize: '0.7rem', color: 'var(--on-surface-variant)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span className="material-symbols-outlined" style={{ fontSize: '0.85rem' }}>update</span>
+                                Actualizado: {formatDate(product.lastUpdated)}
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>
                               <span>Ver detalles</span>
                               <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>arrow_forward</span>
                             </div>

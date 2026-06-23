@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
+import { db } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -32,17 +34,21 @@ export default function ProductDetails() {
       ? (words[0][0] + words[1][0]).toUpperCase() 
       : (words[0].substring(0, 2) || 'US').toUpperCase();
 
-    const newReview = {
+    const newComment = {
       id: Date.now().toString(),
       initials,
       name: name,
+      email: currentUser.email || '',
       photoURL: currentUser.photoURL || null,
       rating: `${reviewStars} Estrellas`,
-      text: reviewText
+      text: reviewText,
+      productId: id,
+      productModel: product.model,
+      published: false,
+      createdAt: new Date().toISOString()
     };
 
-    const updatedReviews = [...(settings.reviews || []), newReview];
-    await updateSettings({ ...settings, reviews: updatedReviews });
+    await setDoc(doc(db, "comments", newComment.id), newComment);
     setReviewSubmitted(true);
   };
 
@@ -74,9 +80,44 @@ export default function ProductDetails() {
 
   const activeOffer = product ? offers.find(o => isOfferLive(o) && (o.applicableProducts || []).includes(product.id)) : null;
 
+  const formatDate = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
   return (
     <>
-      <nav className="glass-effect">
+      {settings.promoBannerActive && (
+        <div style={{
+          background: settings.promoBannerBgColor || '#25D366',
+          color: settings.promoBannerTextColor || '#ffffff',
+          padding: '8px 24px',
+          textAlign: 'center',
+          fontWeight: 800,
+          fontSize: '0.85rem',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1100,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          height: '40px'
+        }}>
+          <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>campaign</span>
+          <span>{settings.promoBannerText}</span>
+        </div>
+      )}
+      <nav className="glass-effect" style={{ top: settings.promoBannerActive ? '40px' : '0px', transition: 'top 0.3s ease' }}>
         <Link to="/" className="nav-brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {settings.heroImage && (
             <img src={settings.heroImage} alt="Logo" style={{ height: '36px', width: '36px', objectFit: 'cover', borderRadius: '50%', border: '1px solid var(--outline-variant)' }} />
@@ -92,7 +133,7 @@ export default function ProductDetails() {
         </Link>
       </nav>
 
-      <main className="details-page">
+      <main className="details-page" style={{ paddingTop: settings.promoBannerActive ? '120px' : '80px' }}>
         <section className="section">
           <div className="details-grid">
             {/* PRODUCT IMAGE CONTAINER */}
@@ -106,8 +147,20 @@ export default function ProductDetails() {
 
             {/* PRODUCT INFO */}
             <div className="details-content">
-              <span className="badge">{product.brand} Official</span>
-              <h1>{product.model}</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <span className="badge">{product.brand} Official</span>
+                {product.isSoldOut && (
+                  <span className="badge" style={{ background: '#ff4e6b', color: 'black' }}>AGOTADO</span>
+                )}
+              </div>
+              <h1>
+                {product.model}
+                {product.lastUpdated && (
+                  <span style={{ fontSize: '0.85rem', color: 'var(--on-surface-variant)', fontWeight: 'normal', display: 'block', marginTop: '8px' }}>
+                    🗓️ Última actualización: {formatDate(product.lastUpdated)}
+                  </span>
+                )}
+              </h1>
               <p className="description-text">
                 {product.description || 'Sin descripción disponible para este modelo.'}
               </p>
@@ -158,9 +211,10 @@ export default function ProductDetails() {
               product.stock.map((item, index) => {
                 const originalPrice = Number(item.price);
                 const discountedPrice = activeOffer ? originalPrice - (originalPrice * (activeOffer.discount / 100)) : originalPrice;
+                const isItemSoldOut = item.isSoldOut || product.isSoldOut;
 
                 return (
-                  <div key={item.id} className={`stock-row ${index % 2 === 0 ? 'stock-row-even' : 'stock-row-odd'}`}>
+                  <div key={item.id} className={`stock-row ${index % 2 === 0 ? 'stock-row-even' : 'stock-row-odd'}`} style={isItemSoldOut ? { opacity: 0.5 } : {}}>
                     <div className="stock-cell" style={{ flex: 3, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span className="material-symbols-outlined" style={{ fontSize: '1.1rem', color: 'var(--on-surface-variant)' }}>smartphone</span>
                       <strong style={{ fontSize: '1.05rem' }}>{item.specificModel}</strong>
@@ -210,16 +264,21 @@ export default function ProductDetails() {
                     </div>
 
                     <div className="stock-cell stock-action">
-                      <a
-                        href={(() => {
-                          const batteryLine = product.department === 'Celulares'
-                            ? `\n🔋 *Salud de Batería:* ${item.battery}%` : '';
-                          
-                          const priceText = activeOffer 
-                            ? `RD$ ${discountedPrice.toLocaleString('en-US')} (con descuento ${activeOffer.name})`
-                            : `RD$ ${originalPrice.toLocaleString('en-US')}`;
+                      {isItemSoldOut ? (
+                        <span className="btn" style={{ padding: '10px 24px', whiteSpace: 'nowrap', background: '#252528', color: 'var(--on-surface-variant)', border: '1px solid var(--outline-variant)', cursor: 'not-allowed', boxShadow: 'none', opacity: 0.8 }}>
+                          Agotado
+                        </span>
+                      ) : (
+                        <a
+                          href={(() => {
+                            const batteryLine = product.department === 'Celulares'
+                              ? `\n🔋 *Salud de Batería:* ${item.battery}%` : '';
+                            
+                            const priceText = activeOffer 
+                              ? `RD$ ${discountedPrice.toLocaleString('en-US')} (con descuento ${activeOffer.name})`
+                              : `RD$ ${originalPrice.toLocaleString('en-US')}`;
 
-                          const msg =
+                            const msg =
 `👋 ¡Hola! Estoy interesado/a en el siguiente equipo:
 
 ━━━━━━━━━━━━━━━━━━━━
@@ -231,18 +290,19 @@ export default function ProductDetails() {
 ━━━━━━━━━━━━━━━━━━━━
 
 ¿Este equipo sigue disponible? 😊`;
-                          return `${waBase}?text=${encodeURIComponent(msg)}`;
-                        })()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn"
-                      style={{ padding: '10px 24px', whiteSpace: 'nowrap', background: '#25D366', color: 'white', border: 'none' }}
-                    >
-                      Lo quiero
-                      <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i>
-                    </a>
+                            return `${waBase}?text=${encodeURIComponent(msg)}`;
+                          })()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn"
+                        style={{ padding: '10px 24px', whiteSpace: 'nowrap', background: '#25D366', color: 'white', border: 'none' }}
+                      >
+                        Lo quiero
+                        <i className="fa-brands fa-whatsapp" style={{ fontSize: '1.2rem' }}></i>
+                      </a>
+                      )}
+                    </div>
                   </div>
-                </div>
                 );
               })
             ) : (
